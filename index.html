@@ -175,7 +175,7 @@ footer{text-align:center;padding:24px 0 8px;font-size:11px;color:var(--muted);le
     <span class="tier-sep">&rsaquo;</span>
     <div class="tier tier-2" id="tier2"><span class="tier-dot"></span>Google</div>
     <span class="tier-sep">&rsaquo;</span>
-    <div class="tier tier-3" id="tier3"><span class="tier-dot"></span>MyMemory</div>
+    <div class="tier tier-3" id="tier3"><span class="tier-dot"></span>Auto</div>
   </div>
 
   <div class="key-section" id="keySection">
@@ -185,7 +185,7 @@ footer{text-align:center;padding:24px 0 8px;font-size:11px;color:var(--muted);le
       <button class="btn-save-key" onclick="saveKey()">Save</button>
     </div>
     <div class="key-hint">
-      No key? <span>Lingva</span> then <span>MyMemory</span> used automatically for free.
+      API key stored securely on server. Google Translate used as free fallback.
     </div>
   </div>
 
@@ -453,36 +453,57 @@ function engineName(e) {
 }
 
 function runTranslation(src, cb) {
-  if (apiKey) {
-    setStatus('thinking', 'Claude AI translating...');
-    setTier(1);
-    callClaude(src, function(r) {
-      if (r) { cb(r, 'claude'); return; }
-      tryLingvaChain(src, cb);
-    });
-  } else {
-    tryLingvaChain(src, cb);
-  }
+  /* Always try Claude proxy first (server-side key), then user key, then free */
+  setStatus('thinking', 'Translating...');
+  setTier(1);
+  callClaude(src, function(r) {
+    if (r) { cb(r, 'claude'); return; }
+    tryFreeFallback(src, cb);
+  });
 }
 
-function tryLingvaChain(src, cb) {
-  setStatus('thinking', 'Trying Google Translate (free)...');
+function tryFreeFallback(src, cb) {
+  /* Free fallback: Google Translate with correct Creole/Bhojpuri codes */
+  setStatus('thinking', 'Trying Google Translate...');
   setTier(2);
   tryGoogleTranslate(src, function(r) {
     if (r) { cb(r, 'google'); return; }
-    setStatus('thinking', 'Trying MyMemory 2-hop...');
+    setStatus('thinking', 'Trying auto-detect...');
     setTier(3);
-    twoHopTranslate(src, selectedLang === 'creole' ? 'fr' : 'hi', function(r2) {
-      cb(r2, 'mymemory');
+    tryGoogleAuto(src, function(r2) {
+      cb(r2, 'google');
     });
   });
 }
 
 function callClaude(src, cb) {
+  /* Call our Vercel serverless proxy - no CORS, API key stored server-side */
+  var xhr = new XMLHttpRequest();
+  xhr.open('POST', '/api/translate', true);
+  xhr.setRequestHeader('Content-Type', 'application/json');
+  xhr.timeout = 20000;
+  xhr.onload = function() {
+    try {
+      var d = JSON.parse(xhr.responseText);
+      if (d && d.telugu) {
+        cb({ telugu: d.telugu, roman: d.roman || '', confidence: 'high' });
+      } else {
+        /* If proxy not configured, try direct browser call with user key */
+        callClaudeDirect(src, cb);
+      }
+    } catch(e) { callClaudeDirect(src, cb); }
+  };
+  xhr.onerror = function() { callClaudeDirect(src, cb); };
+  xhr.ontimeout = function() { callClaudeDirect(src, cb); };
+  xhr.send(JSON.stringify({ text: src, lang: selectedLang }));
+}
+
+function callClaudeDirect(src, cb) {
+  if (!apiKey) { cb(null); return; }
   var cfg = LANG[selectedLang];
   var body = JSON.stringify({
     model: 'claude-sonnet-4-20250514',
-    max_tokens: 800,
+    max_tokens: 500,
     system: cfg.prompt,
     messages: [{ role: 'user', content: src }]
   });
