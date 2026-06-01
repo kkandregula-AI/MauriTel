@@ -173,9 +173,9 @@ footer{text-align:center;padding:24px 0 8px;font-size:11px;color:var(--muted);le
   <div class="engine-indicator">
     <div class="tier tier-1" id="tier1"><span class="tier-dot"></span>Claude AI</div>
     <span class="tier-sep">&rsaquo;</span>
-    <div class="tier tier-2" id="tier2"><span class="tier-dot"></span>MyMemory</div>
+    <div class="tier tier-2" id="tier2"><span class="tier-dot"></span>Google</div>
     <span class="tier-sep">&rsaquo;</span>
-    <div class="tier tier-3" id="tier3"><span class="tier-dot"></span>Google</div>
+    <div class="tier tier-3" id="tier3"><span class="tier-dot"></span>MyMemory</div>
   </div>
 
   <div class="key-section" id="keySection">
@@ -466,14 +466,14 @@ function runTranslation(src, cb) {
 }
 
 function tryLingvaChain(src, cb) {
-  setStatus('thinking', 'Trying MyMemory (free)...');
+  setStatus('thinking', 'Trying Google Translate (free)...');
   setTier(2);
-  callMyMemory(src, function(r) {
-    if (r) { cb(r, 'mymemory'); return; }
-    setStatus('thinking', 'Trying Google Translate...');
+  tryGoogleTranslate(src, function(r) {
+    if (r) { cb(r, 'google'); return; }
+    setStatus('thinking', 'Trying MyMemory 2-hop...');
     setTier(3);
-    tryGoogleTranslate(src, function(r2) {
-      cb(r2, 'google');
+    twoHopTranslate(src, selectedLang === 'creole' ? 'fr' : 'hi', function(r2) {
+      cb(r2, 'mymemory');
     });
   });
 }
@@ -511,32 +511,19 @@ function callLingva(src, instIdx, cb) {
 }
 
 function callMyMemory(src, cb) {
-  /* MyMemory: use fr for Creole, hi for Bhojpuri - both map to Telugu */
-  var langCode = selectedLang === 'creole' ? 'fr' : 'hi';
-  var url = 'https://api.mymemory.translated.net/get?q=' + encodeURIComponent(src) + '&langpair=' + langCode + '|te';
-  var xhr = new XMLHttpRequest();
-  xhr.open('GET', url, true);
-  xhr.timeout = 10000;
-  xhr.onload = function() {
-    try {
-      var d = JSON.parse(xhr.responseText);
-      var rd = d.responseData || {};
-      var t = rd.translatedText || '';
-      if (d.responseStatus === 200 && t && t.toLowerCase() !== src.toLowerCase()) {
-        cb({ telugu: t, roman: '', confidence: 'medium' });
-      } else {
-        tryGoogleTranslate(src, cb);
-      }
-    } catch(e) { tryGoogleTranslate(src, cb); }
-  };
-  xhr.onerror = function() { tryGoogleTranslate(src, cb); };
-  xhr.ontimeout = function() { tryGoogleTranslate(src, cb); };
-  xhr.send();
+  /* Step 1: translate source to English first, then English to Telugu */
+  var srcLang = selectedLang === 'creole' ? 'fr' : 'hi';
+  /* Use Google as primary free engine - it knows mfe (Morisyen) and bho (Bhojpuri) */
+  tryGoogleTranslate(src, function(r) {
+    if (r) { cb(r); return; }
+    /* Fallback: MyMemory en->te with two-hop */
+    twoHopTranslate(src, srcLang, cb);
+  });
 }
 
 function tryGoogleTranslate(src, cb) {
-  /* Google Translate unofficial endpoint - CORS-friendly */
-  var srcLang = selectedLang === 'creole' ? 'fr' : 'hi';
+  /* Use correct ISO codes: mfe=Mauritian Creole, bho=Bhojpuri */
+  var srcLang = selectedLang === 'creole' ? 'mfe' : 'bho';
   var url = 'https://translate.googleapis.com/translate_a/single?client=gtx&sl=' + srcLang + '&tl=te&dt=t&q=' + encodeURIComponent(src);
   var xhr = new XMLHttpRequest();
   xhr.open('GET', url, true);
@@ -544,15 +531,45 @@ function tryGoogleTranslate(src, cb) {
   xhr.onload = function() {
     try {
       var d = JSON.parse(xhr.responseText);
-      /* Google returns nested array: [[["translated","original",null,null,1],...],...]  */
       var result = '';
       if (d && d[0]) {
         for (var i = 0; i < d[0].length; i++) {
           if (d[0][i] && d[0][i][0]) result += d[0][i][0];
         }
       }
-      if (result && result !== src) {
+      /* Reject if output is same as input or contains original Latin words */
+      var teluguChars = result.replace(/[\x00-\x7F]/g, '');
+      if (result && teluguChars.length > 0) {
         cb({ telugu: result, roman: '', confidence: 'medium' });
+      } else {
+        /* Try auto-detect as fallback */
+        tryGoogleAuto(src, cb);
+      }
+    } catch(e) { tryGoogleAuto(src, cb); }
+  };
+  xhr.onerror = function() { tryGoogleAuto(src, cb); };
+  xhr.ontimeout = function() { tryGoogleAuto(src, cb); };
+  xhr.send();
+}
+
+function tryGoogleAuto(src, cb) {
+  /* sl=auto lets Google detect the language */
+  var url = 'https://translate.googleapis.com/translate_a/single?client=gtx&sl=auto&tl=te&dt=t&q=' + encodeURIComponent(src);
+  var xhr = new XMLHttpRequest();
+  xhr.open('GET', url, true);
+  xhr.timeout = 10000;
+  xhr.onload = function() {
+    try {
+      var d = JSON.parse(xhr.responseText);
+      var result = '';
+      if (d && d[0]) {
+        for (var i = 0; i < d[0].length; i++) {
+          if (d[0][i] && d[0][i][0]) result += d[0][i][0];
+        }
+      }
+      var teluguChars = result.replace(/[\x00-\x7F]/g, '');
+      if (result && teluguChars.length > 0) {
+        cb({ telugu: result, roman: '', confidence: 'low' });
       } else {
         cb(null);
       }
@@ -561,6 +578,42 @@ function tryGoogleTranslate(src, cb) {
   xhr.onerror = function() { cb(null); };
   xhr.ontimeout = function() { cb(null); };
   xhr.send();
+}
+
+function twoHopTranslate(src, srcLang, cb) {
+  /* Hop 1: source lang -> English via MyMemory */
+  var url1 = 'https://api.mymemory.translated.net/get?q=' + encodeURIComponent(src) + '&langpair=' + srcLang + '|en';
+  var xhr1 = new XMLHttpRequest();
+  xhr1.open('GET', url1, true);
+  xhr1.timeout = 8000;
+  xhr1.onload = function() {
+    try {
+      var d = JSON.parse(xhr1.responseText);
+      var eng = (d.responseData && d.responseData.translatedText) ? d.responseData.translatedText : '';
+      if (!eng || eng.toLowerCase() === src.toLowerCase()) { cb(null); return; }
+      /* Hop 2: English -> Telugu via MyMemory */
+      var url2 = 'https://api.mymemory.translated.net/get?q=' + encodeURIComponent(eng) + '&langpair=en|te';
+      var xhr2 = new XMLHttpRequest();
+      xhr2.open('GET', url2, true);
+      xhr2.timeout = 8000;
+      xhr2.onload = function() {
+        try {
+          var d2 = JSON.parse(xhr2.responseText);
+          var tel = (d2.responseData && d2.responseData.translatedText) ? d2.responseData.translatedText : '';
+          var teluguChars = tel.replace(/[\x00-\x7F]/g, '');
+          if (d2.responseStatus === 200 && tel && teluguChars.length > 0) {
+            cb({ telugu: tel, roman: '', confidence: 'low' });
+          } else { cb(null); }
+        } catch(e) { cb(null); }
+      };
+      xhr2.onerror = function() { cb(null); };
+      xhr2.ontimeout = function() { cb(null); };
+      xhr2.send();
+    } catch(e) { cb(null); }
+  };
+  xhr1.onerror = function() { cb(null); };
+  xhr1.ontimeout = function() { cb(null); };
+  xhr1.send();
 }
 
 function setOutputLoading() {
