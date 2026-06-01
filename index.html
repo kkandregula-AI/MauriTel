@@ -129,6 +129,17 @@ footer{text-align:center;padding:24px 0 8px;font-size:11px;color:var(--muted);le
 .ulc-sub{font-size:11px;color:var(--muted);margin-top:2px;}
 .ulc-badge{font-size:10px;font-weight:700;letter-spacing:2px;padding:4px 10px;border-radius:20px;background:rgba(46,196,182,0.12);color:var(--teal);border:1px solid rgba(46,196,182,0.25);flex-shrink:0;}
 .detected-bar{display:flex;align-items:center;gap:8px;padding:8px 14px;background:var(--surface2);border-radius:10px;margin-bottom:12px;}
+
+.quality-warn{background:rgba(232,184,75,0.1);border:1px solid rgba(232,184,75,0.25);border-radius:8px;padding:8px 12px;font-size:12px;color:var(--gold);margin-bottom:10px;line-height:1.5;}
+.api-needed-banner{background:rgba(232,184,75,0.08);border:1px solid rgba(232,184,75,0.2);border-radius:12px;padding:12px 16px;margin-bottom:16px;display:flex;align-items:flex-start;gap:10px;}
+.api-needed-icon{font-size:20px;flex-shrink:0;margin-top:1px;}
+.api-needed-text{flex:1;}
+.api-needed-title{font-weight:600;font-size:13px;color:var(--gold);margin-bottom:3px;}
+.api-needed-sub{font-size:11px;color:var(--muted);line-height:1.5;}
+.api-needed-sub a{color:var(--teal);text-decoration:none;}
+.key-section-collapsed{cursor:pointer;}
+.tab-key-badge{font-size:9px;font-weight:700;letter-spacing:1px;padding:2px 6px;border-radius:8px;background:rgba(232,184,75,0.2);color:var(--gold);border:1px solid rgba(232,184,75,0.3);margin-left:5px;vertical-align:middle;}
+.upload-requires-key{background:rgba(255,92,107,0.1);border:1px solid rgba(255,92,107,0.25);border-radius:8px;padding:8px 12px;font-size:12px;color:var(--red);margin-top:10px;text-align:center;}
 </style>
 </head>
 <body>
@@ -155,13 +166,20 @@ footer{text-align:center;padding:24px 0 8px;font-size:11px;color:var(--muted);le
     <div class="tier tier-3" id="tier3"><span class="tier-dot"></span>Auto</div>
   </div>
 
+  <div class="api-needed-banner" id="apiBanner">
+    <div class="api-needed-icon">&#9888;</div>
+    <div class="api-needed-text">
+      <div class="api-needed-title">API Key Required for Accurate Translation</div>
+      <div class="api-needed-sub">Google Translate cannot properly translate Creole or Bhojpuri into Telugu &mdash; it just phonetically writes the words. Claude AI understands the actual meaning. Get a free key at <a href="https://console.anthropic.com" target="_blank">console.anthropic.com</a> and paste it below.</div>
+    </div>
+  </div>
   <div class="key-section" id="keySection">
     <label>API KEY &nbsp;<span style="color:var(--teal);font-size:10px;font-weight:600;">OPTIONAL - Best Quality</span></label>
     <div class="key-row">
       <input type="password" class="key-input" id="apiKeyInput" placeholder="sk-ant-... (leave blank for free)"/>
       <button class="btn-save-key" onclick="saveKey()">Save</button>
     </div>
-    <div class="key-hint">No key? Google Translate used automatically for free.</div>
+    <div class="key-hint">No key? Google used as fallback but gives poor Creole/Bhojpuri results. Add key for accurate translations.</div>
   </div>
 
   <!-- Unified language card -->
@@ -191,7 +209,7 @@ footer{text-align:center;padding:24px 0 8px;font-size:11px;color:var(--muted);le
   <!-- INPUT TABS -->
   <div class="tab-row">
     <button class="tab-btn active" id="tab-text" onclick="switchTab('text')">&#9997; Type / Speak</button>
-    <button class="tab-btn" id="tab-upload" onclick="switchTab('upload')">&#128247; Image / PDF</button>
+    <button class="tab-btn" id="tab-upload" onclick="switchTab('upload')">&#128247; Image / PDF <span class="tab-key-badge">API KEY</span></button>
   </div>
 
   <!-- TEXT INPUT TAB -->
@@ -223,7 +241,7 @@ footer{text-align:center;padding:24px 0 8px;font-size:11px;color:var(--muted);le
         <input type="file" id="fileInput" accept="image/*,.pdf" onchange="handleFileSelect(this)"/>
         <div class="upload-icon">&#128443;</div>
         <div class="upload-title">Upload Image or PDF Poster</div>
-        <div class="upload-sub">JPG, PNG, GIF, WebP, PDF &mdash; Claude reads &amp; translates the text</div>
+        <div class="upload-sub">JPG, PNG, GIF, WebP, PDF &mdash; Claude Vision reads &amp; translates the text</div><div class="upload-requires-key" id="uploadKeyNotice" style="display:none;">&#9888; Requires Claude API key &mdash; add it above</div>
       </div>
       <div class="upload-preview" id="uploadPreview">
         <img id="previewImg" src="" alt="Preview"/>
@@ -236,7 +254,7 @@ footer{text-align:center;padding:24px 0 8px;font-size:11px;color:var(--muted);le
       </div>
       <button class="btn-ocr-translate" id="ocrBtn" onclick="translateFile()" style="display:none;" disabled>
         <span>&#128269;</span>
-        <span id="ocrBtnText">Extract &amp; Translate</span>
+        <span id="ocrBtnText">Extract Text &amp; Translate via Claude Vision</span>
       </button>
     </div>
   </div>
@@ -290,7 +308,7 @@ var selLangForSpeech = 'fr-MU';
 
 function init() {
   try { var s = localStorage.getItem('mth'); if (s) hist = JSON.parse(s); } catch(e) {}
-  try { var k = localStorage.getItem('mtk'); if (k) { apiKey = k; document.getElementById('apiKeyInput').value = k; document.getElementById('keySection').style.borderColor = 'rgba(46,196,182,0.3)'; } } catch(e) {}
+  try { var k = localStorage.getItem('mtk'); if (k) { apiKey = k; document.getElementById('apiKeyInput').value = k; document.getElementById('keySection').style.borderColor = 'rgba(46,196,182,0.3)'; var b = document.getElementById('apiBanner'); if (b) b.style.display = 'none'; } } catch(e) {}
   renderHistory();
   setupSR();
 }
@@ -300,8 +318,19 @@ function saveKey() {
   v = v ? v.trim() : '';
   if (v && v.indexOf('sk-ant-') !== 0) { showToast('Key should start with sk-ant-'); return; }
   apiKey = v;
-  if (v) { try { localStorage.setItem('mtk', v); } catch(e) {} document.getElementById('keySection').style.borderColor = 'rgba(46,196,182,0.4)'; showToast('API Key saved'); }
-  else { try { localStorage.removeItem('mtk'); } catch(e) {} document.getElementById('keySection').style.borderColor = ''; showToast('Free mode active'); }
+  if (v) {
+    try { localStorage.setItem('mtk', v); } catch(e) {}
+    document.getElementById('keySection').style.borderColor = 'rgba(46,196,182,0.4)';
+    var banner = document.getElementById('apiBanner');
+    if (banner) banner.style.display = 'none';
+    showToast('API Key saved - accurate translations enabled!');
+  } else {
+    try { localStorage.removeItem('mtk'); } catch(e) {}
+    document.getElementById('keySection').style.borderColor = '';
+    var banner2 = document.getElementById('apiBanner');
+    if (banner2) banner2.style.display = 'flex';
+    showToast('Free mode - Google fallback (limited quality)');
+  }
 }
 
 function setTier(n) {
@@ -405,7 +434,8 @@ function doTranslate() {
     if (!result) { setStatus('error', 'Translation failed. Try again.'); setOutputError(); setTier(0); return; }
     curTelugu = result.telugu;
     showOutput(result, engine);
-    setStatus('done', 'Translated via ' + engineLabel(engine));
+    var qual = (engine === 'claude') ? ' (high quality)' : ' (limited Creole support - add API key for best results)';
+    setStatus('done', 'Translated via ' + engineLabel(engine) + qual);
     saveHist(src, result.telugu, selLang, engine);
     setTimeout(function() { speakTelugu(); }, 400);
   });
@@ -535,6 +565,13 @@ function showOutput(result, engine) {
   tag.className = 'engine-tag engine-tag-' + (engine === 'auto' ? 'google' : engine);
   tag.textContent = engineLabel(engine);
   ob.appendChild(tag);
+  /* Show quality warning for Google fallback */
+  if (engine === 'google' || engine === 'auto') {
+    var warn = document.createElement('div');
+    warn.className = 'quality-warn';
+    warn.textContent = 'Google does not fully support Creole/Bhojpuri. Add an API key for accurate translation.';
+    ob.appendChild(warn);
+  }
   var tv = document.createElement('div');
   tv.className = 'telugu-text';
   tv.textContent = result.telugu;
@@ -697,6 +734,8 @@ function switchTab(tab) {
   document.getElementById('pane-upload').style.display = tab === 'upload' ? '' : 'none';
   document.getElementById('tab-text').className = 'tab-btn' + (tab === 'text' ? ' active' : '');
   document.getElementById('tab-upload').className = 'tab-btn' + (tab === 'upload' ? ' active' : '');
+  var notice = document.getElementById('uploadKeyNotice');
+  if (notice) notice.style.display = (tab === 'upload' && !apiKey) ? 'block' : 'none';
 }
 
 /* -- FILE HANDLING -- */
@@ -748,7 +787,17 @@ function removeFile() {
 
 function translateFile() {
   if (!uploadedFile || !uploadedDataURL) { showToast('Please select a file first'); return; }
-  if (!apiKey) { showToast('API Key required for image/PDF translation'); return; }
+  if (!apiKey) {
+    var ob = document.getElementById('outputBody');
+    ob.innerHTML = '';
+    var warn = document.createElement('div');
+    warn.className = 'quality-warn';
+    warn.textContent = 'Image & PDF translation requires a Claude API key. Google does not support image OCR for Creole/Bhojpuri. Please add your API key above.';
+    ob.appendChild(warn);
+    setStatus('error', 'API key required for image/PDF translation');
+    showToast('Add API key to translate images');
+    return;
+  }
 
   var btn = document.getElementById('ocrBtn');
   btn.disabled = true;
