@@ -4,36 +4,19 @@
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
 <meta name="theme-color" content="#0a0f1e"/>
-<meta name="description" content="MauriTel - Mauritius to Telugu Translator"/>
 <title>MauriTel - Mauritius to Telugu</title>
 <link href="https://fonts.googleapis.com/css2?family=Yatra+One&family=Tiro+Telugu&family=DM+Sans:wght@300;400;500;600&family=Space+Mono&display=swap" rel="stylesheet"/>
 <style>
-:root{
-  --bg:#060b18;--surface:#0d1528;--surface2:#111e35;--border:rgba(255,255,255,0.07);
-  --gold:#e8b84b;--gold2:#f5d07a;--teal:#2ec4b6;--teal2:#3de0d0;--red:#ff5c6b;
-  --text:#e8eaf0;--muted:#6b7a99;--creole:#7eb8f7;--bhoj:#b07ef7;--telugu:#5df0b0;
-  --radius:16px;--shadow:0 8px 32px rgba(0,0,0,0.5);
-}
+:root{--bg:#060b18;--surface:#0d1528;--surface2:#111e35;--border:rgba(255,255,255,0.07);--gold:#e8b84b;--gold2:#f5d07a;--teal:#2ec4b6;--teal2:#3de0d0;--red:#ff5c6b;--text:#e8eaf0;--muted:#6b7a99;--creole:#7eb8f7;--bhoj:#b07ef7;--telugu:#5df0b0;--radius:16px;--shadow:0 8px 32px rgba(0,0,0,0.5);}
 *{margin:0;padding:0;box-sizing:border-box;}
 body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min-height:100vh;overflow-x:hidden;}
-body::before{content:'';position:fixed;inset:0;z-index:0;
-  background:radial-gradient(ellipse 80% 60% at 10% 20%,rgba(46,196,182,0.06) 0%,transparent 60%),
-  radial-gradient(ellipse 60% 80% at 90% 80%,rgba(232,184,75,0.07) 0%,transparent 60%),
-  radial-gradient(ellipse 50% 50% at 50% 50%,rgba(13,21,40,0.9) 0%,var(--bg) 100%);pointer-events:none;}
-body::after{content:'';position:fixed;inset:0;z-index:0;
-  background-image:linear-gradient(rgba(255,255,255,0.018) 1px,transparent 1px),
-  linear-gradient(90deg,rgba(255,255,255,0.018) 1px,transparent 1px);
-  background-size:40px 40px;pointer-events:none;}
+body::before{content:'';position:fixed;inset:0;z-index:0;background:radial-gradient(ellipse 80% 60% at 10% 20%,rgba(46,196,182,0.06) 0%,transparent 60%),radial-gradient(ellipse 60% 80% at 90% 80%,rgba(232,184,75,0.07) 0%,transparent 60%),radial-gradient(ellipse 50% 50% at 50% 50%,rgba(13,21,40,0.9) 0%,var(--bg) 100%);pointer-events:none;}
+body::after{content:'';position:fixed;inset:0;z-index:0;background-image:linear-gradient(rgba(255,255,255,0.018) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,0.018) 1px,transparent 1px);background-size:40px 40px;pointer-events:none;}
 .app{position:relative;z-index:1;max-width:780px;margin:0 auto;padding:0 16px 80px;}
 header{text-align:center;padding:40px 0 28px;}
 .logo-row{display:flex;align-items:center;justify-content:center;gap:14px;margin-bottom:8px;}
-.logo-icon{width:52px;height:52px;border-radius:14px;
-  background:linear-gradient(135deg,var(--teal) 0%,var(--gold) 100%);
-  display:flex;align-items:center;justify-content:center;font-size:26px;
-  box-shadow:0 4px 20px rgba(46,196,182,0.35);}
-h1{font-family:'Yatra One',cursive;font-size:clamp(28px,6vw,42px);
-  background:linear-gradient(135deg,var(--teal2) 0%,var(--gold2) 100%);
-  -webkit-background-clip:text;-webkit-text-fill-color:transparent;line-height:1;}
+.logo-icon{width:52px;height:52px;border-radius:14px;background:linear-gradient(135deg,var(--teal) 0%,var(--gold) 100%);display:flex;align-items:center;justify-content:center;font-size:26px;box-shadow:0 4px 20px rgba(46,196,182,0.35);}
+h1{font-family:'Yatra One',cursive;font-size:clamp(28px,6vw,42px);background:linear-gradient(135deg,var(--teal2) 0%,var(--gold2) 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;line-height:1;}
 .subtitle{font-size:13px;color:var(--muted);letter-spacing:2px;text-transform:uppercase;margin-top:6px;}
 .lang-badges{display:flex;justify-content:center;gap:10px;margin-top:16px;flex-wrap:wrap;}
 .badge{font-size:11px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;padding:4px 12px;border-radius:20px;}
@@ -42,31 +25,24 @@ h1{font-family:'Yatra One',cursive;font-size:clamp(28px,6vw,42px);
 .badge-arrow{background:rgba(255,255,255,0.05);color:var(--muted);border:1px solid var(--border);}
 .badge-telugu{background:rgba(93,240,176,0.12);color:var(--telugu);border:1px solid rgba(93,240,176,0.25);}
 .engine-indicator{display:flex;align-items:center;gap:6px;justify-content:center;margin:0 0 20px;flex-wrap:wrap;}
-.tier{display:flex;align-items:center;gap:5px;padding:5px 12px;border-radius:20px;
-  font-size:11px;font-weight:600;letter-spacing:1px;text-transform:uppercase;
-  border:1px solid var(--border);background:var(--surface);transition:all .3s;cursor:default;}
+.tier{display:flex;align-items:center;gap:5px;padding:5px 12px;border-radius:20px;font-size:11px;font-weight:600;letter-spacing:1px;text-transform:uppercase;border:1px solid var(--border);background:var(--surface);transition:all .3s;}
 .tier-dot{width:7px;height:7px;border-radius:50%;}
 .tier-sep{color:var(--muted);font-size:14px;}
-.tier-1.active-tier{border-color:var(--gold);background:rgba(232,184,75,0.12);box-shadow:0 0 12px rgba(232,184,75,0.2);}
 .tier-1 .tier-dot{background:var(--gold);}
-.tier-2.active-tier{border-color:var(--teal);background:rgba(46,196,182,0.12);box-shadow:0 0 12px rgba(46,196,182,0.2);}
 .tier-2 .tier-dot{background:var(--teal);}
-.tier-3.active-tier{border-color:var(--bhoj);background:rgba(176,126,247,0.12);box-shadow:0 0 12px rgba(176,126,247,0.2);}
 .tier-3 .tier-dot{background:var(--bhoj);}
+.tier-1.active-tier{border-color:var(--gold);background:rgba(232,184,75,0.12);box-shadow:0 0 12px rgba(232,184,75,0.2);}
+.tier-2.active-tier{border-color:var(--teal);background:rgba(46,196,182,0.12);box-shadow:0 0 12px rgba(46,196,182,0.2);}
+.tier-3.active-tier{border-color:var(--bhoj);background:rgba(176,126,247,0.12);box-shadow:0 0 12px rgba(176,126,247,0.2);}
 .key-section{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px;margin-bottom:16px;}
 .key-section label{font-size:12px;color:var(--muted);display:block;margin-bottom:8px;letter-spacing:1px;}
 .key-row{display:flex;gap:8px;}
-.key-input{flex:1;background:var(--surface2);border:1px solid var(--border);border-radius:8px;
-  padding:10px 14px;color:var(--text);font-family:'Space Mono',monospace;font-size:13px;outline:none;}
+.key-input{flex:1;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:10px 14px;color:var(--text);font-family:'Space Mono',monospace;font-size:13px;outline:none;}
 .key-input:focus{border-color:var(--teal);}
-.btn-save-key{padding:10px 16px;border-radius:8px;border:none;cursor:pointer;
-  background:var(--teal);color:#051210;font-weight:600;font-size:13px;white-space:nowrap;}
+.btn-save-key{padding:10px 16px;border-radius:8px;border:none;cursor:pointer;background:var(--teal);color:#051210;font-weight:600;font-size:13px;white-space:nowrap;}
 .key-hint{font-size:11px;color:var(--muted);margin-top:8px;line-height:1.6;}
-.key-hint span{color:var(--telugu);}
 .lang-selector{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:0 0 16px;}
-.lang-btn{background:var(--surface);border:2px solid var(--border);border-radius:var(--radius);
-  padding:16px;cursor:pointer;transition:all .2s;text-align:left;display:flex;align-items:center;gap:12px;}
-.lang-btn:hover{border-color:rgba(255,255,255,0.15);}
+.lang-btn{background:var(--surface);border:2px solid var(--border);border-radius:var(--radius);padding:16px;cursor:pointer;transition:all .2s;text-align:left;display:flex;align-items:center;gap:12px;}
 .lang-btn.active-creole{border-color:var(--creole);background:rgba(126,184,247,0.08);}
 .lang-btn.active-bhoj{border-color:var(--bhoj);background:rgba(176,126,247,0.08);}
 .lang-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;}
@@ -74,87 +50,79 @@ h1{font-family:'Yatra One',cursive;font-size:clamp(28px,6vw,42px);
 .dot-bhoj{background:var(--bhoj);box-shadow:0 0 8px var(--bhoj);}
 .lang-btn-title{font-weight:600;font-size:14px;}
 .lang-btn-sub{font-size:11px;color:var(--muted);margin-top:2px;}
-.status-bar{display:flex;align-items:center;gap:8px;padding:10px 16px;font-size:12px;
-  color:var(--muted);background:var(--surface2);border-radius:10px;margin-bottom:16px;min-height:40px;}
+.status-bar{display:flex;align-items:center;gap:8px;padding:10px 16px;font-size:12px;color:var(--muted);background:var(--surface2);border-radius:10px;margin-bottom:16px;min-height:40px;}
 .status-dot{width:8px;height:8px;border-radius:50%;background:var(--muted);flex-shrink:0;}
 .status-dot.thinking{background:var(--gold);animation:p2 .8s infinite;}
 .status-dot.done{background:var(--teal);}
 .status-dot.error{background:var(--red);}
 .status-dot.rec{background:var(--red);animation:p2 .6s infinite;}
 @keyframes p2{0%,100%{opacity:1;}50%{opacity:.3;}}
-.panel{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);
-  overflow:hidden;margin-bottom:12px;box-shadow:var(--shadow);}
-.panel-header{display:flex;align-items:center;justify-content:space-between;
-  padding:12px 16px;border-bottom:1px solid var(--border);background:var(--surface2);}
+.panel{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;margin-bottom:12px;box-shadow:var(--shadow);}
+.panel-header{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-bottom:1px solid var(--border);background:var(--surface2);}
 .panel-label{font-size:11px;font-weight:600;letter-spacing:2px;text-transform:uppercase;}
 .label-telugu{color:var(--telugu);}
 .panel-actions{display:flex;gap:8px;}
-.icon-btn{min-width:34px;height:34px;padding:0 10px;border-radius:8px;border:1px solid var(--border);
-  background:rgba(255,255,255,0.04);color:var(--text);cursor:pointer;
-  display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;
-  letter-spacing:1px;transition:all .2s;}
-.icon-btn:hover{background:rgba(255,255,255,0.09);border-color:rgba(255,255,255,0.18);}
-.icon-btn.recording{background:rgba(255,92,107,0.18);border-color:var(--red);animation:pb 1s infinite;}
+.icon-btn{min-width:44px;height:34px;padding:0 10px;border-radius:8px;border:1px solid var(--border);background:rgba(255,255,255,0.04);color:var(--text);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;letter-spacing:1px;transition:all .2s;}
+.icon-btn:hover{background:rgba(255,255,255,0.09);}
+.icon-btn.recording{background:rgba(255,92,107,0.18);border-color:var(--red);}
 .icon-btn.speaking{background:rgba(93,240,176,0.18);border-color:var(--telugu);}
-@keyframes pb{0%,100%{box-shadow:0 0 0 0 rgba(255,92,107,0.4);}50%{box-shadow:0 0 0 6px rgba(255,92,107,0);}}
-textarea{width:100%;min-height:130px;padding:16px;background:transparent;border:none;outline:none;
-  resize:vertical;font-family:'DM Sans',sans-serif;font-size:15px;line-height:1.7;color:var(--text);}
+textarea{width:100%;min-height:130px;padding:16px;background:transparent;border:none;outline:none;resize:vertical;font-family:'DM Sans',sans-serif;font-size:15px;line-height:1.7;color:var(--text);}
 textarea::placeholder{color:var(--muted);}
-.char-count{padding:8px 16px;font-size:11px;color:var(--muted);font-family:'Space Mono',monospace;
-  border-top:1px solid var(--border);text-align:right;}
+.char-count{padding:8px 16px;font-size:11px;color:var(--muted);font-family:'Space Mono',monospace;border-top:1px solid var(--border);text-align:right;}
 .output-body{padding:16px;min-height:130px;}
-.engine-tag{display:inline-block;font-size:10px;font-weight:600;letter-spacing:1.5px;
-  text-transform:uppercase;padding:3px 10px;border-radius:12px;margin-bottom:10px;}
+.engine-tag{display:inline-block;font-size:10px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;padding:3px 10px;border-radius:12px;margin-bottom:10px;}
 .engine-tag-claude{background:rgba(232,184,75,0.15);color:var(--gold);border:1px solid rgba(232,184,75,0.3);}
-.engine-tag-lingva{background:rgba(46,196,182,0.15);color:var(--teal);border:1px solid rgba(46,196,182,0.3);}
-.engine-tag-mymemory{background:rgba(176,126,247,0.15);color:var(--bhoj);border:1px solid rgba(176,126,247,0.3);}
 .engine-tag-google{background:rgba(46,196,182,0.15);color:var(--teal);border:1px solid rgba(46,196,182,0.3);}
+.engine-tag-mymemory{background:rgba(176,126,247,0.15);color:var(--bhoj);border:1px solid rgba(176,126,247,0.3);}
 .telugu-text{font-family:'Tiro Telugu',serif;font-size:18px;line-height:1.9;color:var(--telugu);}
-.output-placeholder{font-family:'DM Sans',sans-serif;font-size:14px;color:var(--muted);
-  font-style:italic;display:flex;align-items:center;justify-content:center;min-height:100px;}
-.transliteration{padding:10px 16px 12px;font-family:'Space Mono',monospace;font-size:12px;
-  color:var(--muted);border-top:1px dashed var(--border);}
+.output-placeholder{font-family:'DM Sans',sans-serif;font-size:14px;color:var(--muted);font-style:italic;display:flex;align-items:center;justify-content:center;min-height:100px;text-align:center;}
+.transliteration{padding:10px 16px 12px;font-family:'Space Mono',monospace;font-size:12px;color:var(--muted);border-top:1px dashed var(--border);}
 .translate-row{display:flex;gap:10px;margin:4px 0;}
-.btn-translate{flex:1;padding:16px;border-radius:var(--radius);border:none;cursor:pointer;
-  font-family:'DM Sans',sans-serif;font-weight:600;font-size:15px;
-  background:linear-gradient(135deg,var(--teal) 0%,#1a9e94 100%);color:#051210;
-  transition:all .25s;display:flex;align-items:center;justify-content:center;gap:8px;
-  box-shadow:0 4px 20px rgba(46,196,182,0.25);}
+.btn-translate{flex:1;padding:16px;border-radius:var(--radius);border:none;cursor:pointer;font-family:'DM Sans',sans-serif;font-weight:600;font-size:15px;background:linear-gradient(135deg,var(--teal) 0%,#1a9e94 100%);color:#051210;transition:all .25s;display:flex;align-items:center;justify-content:center;gap:8px;box-shadow:0 4px 20px rgba(46,196,182,0.25);}
 .btn-translate:disabled{opacity:.5;cursor:not-allowed;}
-.btn-clear{padding:16px 20px;border-radius:var(--radius);border:1px solid var(--border);
-  background:var(--surface);color:var(--muted);cursor:pointer;font-size:18px;}
+.btn-clear{padding:16px 20px;border-radius:var(--radius);border:1px solid var(--border);background:var(--surface);color:var(--muted);cursor:pointer;font-size:18px;}
 .history-section{margin-top:32px;}
-.section-title{font-size:11px;font-weight:600;letter-spacing:2.5px;text-transform:uppercase;
-  color:var(--muted);margin-bottom:14px;display:flex;align-items:center;gap:8px;}
+.history-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;}
+.section-title{font-size:11px;font-weight:600;letter-spacing:2.5px;text-transform:uppercase;color:var(--muted);display:flex;align-items:center;gap:8px;}
 .section-title::after{content:'';flex:1;height:1px;background:var(--border);}
+.btn-clear-all{font-size:11px;font-weight:600;letter-spacing:1px;text-transform:uppercase;padding:4px 12px;border-radius:20px;border:1px solid rgba(255,92,107,0.3);background:rgba(255,92,107,0.08);color:var(--red);cursor:pointer;white-space:nowrap;}
 .history-list{display:flex;flex-direction:column;gap:8px;}
-.history-item{background:var(--surface);border:1px solid var(--border);border-radius:12px;
-  padding:14px 16px;cursor:pointer;transition:all .2s;
-  display:grid;grid-template-columns:1fr auto;gap:12px;align-items:start;}
+.history-item{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:14px 16px;cursor:pointer;transition:all .2s;display:flex;align-items:flex-start;gap:10px;position:relative;}
 .history-item:hover{border-color:rgba(255,255,255,0.15);background:var(--surface2);}
+.history-item-content{flex:1;min-width:0;}
 .history-source{font-size:13px;color:var(--text);margin-bottom:4px;}
 .history-target{font-family:'Tiro Telugu',serif;font-size:15px;color:var(--telugu);}
 .history-meta{font-size:10px;color:var(--muted);margin-top:6px;font-family:'Space Mono',monospace;}
-.history-lang-badge{font-size:10px;font-weight:600;letter-spacing:1px;text-transform:uppercase;
-  padding:3px 8px;border-radius:20px;white-space:nowrap;align-self:flex-start;}
+.history-lang-badge{font-size:10px;font-weight:600;letter-spacing:1px;text-transform:uppercase;padding:3px 8px;border-radius:20px;white-space:nowrap;flex-shrink:0;}
+.history-del{width:28px;height:28px;border-radius:8px;border:1px solid rgba(255,92,107,0.3);background:rgba(255,92,107,0.08);color:var(--red);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:12px;flex-shrink:0;opacity:0;transition:opacity .2s;}
+.history-item:hover .history-del{opacity:1;}
 footer{text-align:center;padding:24px 0 8px;font-size:11px;color:var(--muted);letter-spacing:1px;line-height:1.8;}
-.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(60px);
-  background:var(--surface2);border:1px solid var(--border);border-radius:10px;
-  padding:10px 20px;font-size:13px;transition:transform .3s;z-index:100;
-  white-space:nowrap;box-shadow:var(--shadow);}
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(60px);background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:10px 20px;font-size:13px;transition:transform .3s;z-index:100;white-space:nowrap;box-shadow:var(--shadow);}
 .toast.show{transform:translateX(-50%) translateY(0);}
-@media(max-width:500px){
-  .lang-btn{padding:12px;} .lang-btn-title{font-size:13px;} h1{font-size:28px;}
-  .engine-indicator{gap:4px;} .tier{padding:4px 8px;font-size:10px;}
-}
+@media(max-width:500px){.lang-btn{padding:12px;}.lang-btn-title{font-size:13px;}h1{font-size:28px;}.tier{padding:4px 8px;font-size:10px;}}
+
+.upload-section{margin-bottom:16px;}
+.upload-panel{background:var(--surface);border:2px dashed var(--border);border-radius:var(--radius);padding:20px 16px;text-align:center;cursor:pointer;transition:all .3s;position:relative;}
+.upload-panel:hover,.upload-panel.drag-over{border-color:var(--gold);background:rgba(232,184,75,0.06);}
+.upload-panel input[type=file]{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%;}
+.upload-icon{font-size:32px;margin-bottom:8px;}
+.upload-title{font-weight:600;font-size:14px;color:var(--text);margin-bottom:4px;}
+.upload-sub{font-size:12px;color:var(--muted);}
+.upload-preview{margin-top:14px;display:none;}
+.upload-preview img{max-width:100%;max-height:200px;border-radius:10px;border:1px solid var(--border);object-fit:contain;}
+.upload-preview-name{font-size:12px;color:var(--gold);margin-top:8px;font-family:'Space Mono',monospace;}
+.btn-ocr-translate{width:100%;margin-top:10px;padding:12px;border-radius:10px;border:none;cursor:pointer;font-family:'DM Sans',sans-serif;font-weight:600;font-size:14px;background:linear-gradient(135deg,var(--gold) 0%,#c49a30 100%);color:#0a0800;transition:all .25s;display:flex;align-items:center;justify-content:center;gap:8px;}
+.btn-ocr-translate:disabled{opacity:.5;cursor:not-allowed;}
+.btn-remove-file{margin-top:8px;padding:6px 14px;border-radius:8px;border:1px solid rgba(255,92,107,0.3);background:rgba(255,92,107,0.08);color:var(--red);cursor:pointer;font-size:12px;font-weight:600;}
+.ocr-extracted{background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:12px;margin-top:10px;display:none;}
+.ocr-label{font-size:10px;font-weight:600;letter-spacing:2px;text-transform:uppercase;color:var(--gold);margin-bottom:6px;}
+.ocr-text{font-size:13px;color:var(--text);line-height:1.6;white-space:pre-wrap;max-height:120px;overflow-y:auto;}
+.tab-row{display:flex;gap:0;margin-bottom:16px;border-radius:12px;overflow:hidden;border:1px solid var(--border);}
+.tab-btn{flex:1;padding:11px;border:none;cursor:pointer;font-family:'DM Sans',sans-serif;font-weight:600;font-size:13px;transition:all .2s;background:var(--surface);color:var(--muted);}
+.tab-btn.active{background:var(--surface2);color:var(--text);}
 </style>
 </head>
 <body>
-
-<!-- Hidden text nodes for Telugu strings - keeps them OUT of JS -->
-<span id="emptyText" style="display:none;">అనువాదం ఇక్కడ కనిపిస్తుంది...</span>
-<span id="loadingText" style="display:none;">అనువాదం జరుగుతోంది...</span>
-
 <div class="app">
   <header>
     <div class="logo-row">
@@ -181,12 +149,10 @@ footer{text-align:center;padding:24px 0 8px;font-size:11px;color:var(--muted);le
   <div class="key-section" id="keySection">
     <label>API KEY &nbsp;<span style="color:var(--teal);font-size:10px;font-weight:600;">OPTIONAL - Best Quality</span></label>
     <div class="key-row">
-      <input type="password" class="key-input" id="apiKeyInput" placeholder="sk-ant-... (leave blank for free translation)"/>
+      <input type="password" class="key-input" id="apiKeyInput" placeholder="sk-ant-... (leave blank for free)"/>
       <button class="btn-save-key" onclick="saveKey()">Save</button>
     </div>
-    <div class="key-hint">
-      API key stored securely on server. Google Translate used as free fallback.
-    </div>
+    <div class="key-hint">No key? Google Translate used automatically for free.</div>
   </div>
 
   <div class="lang-selector">
@@ -205,24 +171,57 @@ footer{text-align:center;padding:24px 0 8px;font-size:11px;color:var(--muted);le
     <span id="statusText">Select language and type or speak to translate</span>
   </div>
 
-  <div class="panel">
-    <div class="panel-header">
-      <span class="panel-label" id="inputLabel" style="color:var(--creole)">KREOL MORISYEN</span>
-      <div class="panel-actions">
-        <button class="icon-btn" id="micBtn" onclick="toggleRecording()">MIC</button>
-        <button class="icon-btn" onclick="pasteClip()">PASTE</button>
-      </div>
-    </div>
-    <textarea id="sourceText" placeholder="Type in Kreol Morisyen or tap MIC to speak" oninput="updateCharCount()" maxlength="2000"></textarea>
-    <div class="char-count"><span id="charCount">0</span> / 2000</div>
+  <!-- INPUT TABS -->
+  <div class="tab-row">
+    <button class="tab-btn active" id="tab-text" onclick="switchTab('text')">&#9997; Type / Speak</button>
+    <button class="tab-btn" id="tab-upload" onclick="switchTab('upload')">&#128247; Image / PDF</button>
   </div>
 
-  <div class="translate-row">
-    <button class="btn-translate" id="translateBtn" onclick="doTranslate()">
-      <span>&#9889;</span>
-      <span id="btnText">Translate to Telugu</span>
-    </button>
-    <button class="btn-clear" onclick="clearAll()" title="Clear">&#128465;</button>
+  <!-- TEXT INPUT TAB -->
+  <div id="pane-text">
+    <div class="panel">
+      <div class="panel-header">
+        <span class="panel-label" id="inputLabel" style="color:var(--creole)">KREOL MORISYEN</span>
+        <div class="panel-actions">
+          <button class="icon-btn" id="micBtn" onclick="toggleRecording()">MIC</button>
+          <button class="icon-btn" onclick="pasteClip()">PASTE</button>
+        </div>
+      </div>
+      <textarea id="sourceText" placeholder="Type in Kreol Morisyen or tap MIC to speak" oninput="updateCharCount()" maxlength="2000"></textarea>
+      <div class="char-count"><span id="charCount">0</span> / 2000</div>
+    </div>
+    <div class="translate-row">
+      <button class="btn-translate" id="translateBtn" onclick="doTranslate()">
+        <span>&#9889;</span>
+        <span id="btnText">Translate to Telugu</span>
+      </button>
+      <button class="btn-clear" onclick="clearAll()" title="Clear">&#128465;</button>
+    </div>
+  </div>
+
+  <!-- UPLOAD TAB -->
+  <div id="pane-upload" style="display:none;">
+    <div class="upload-section">
+      <div class="upload-panel" id="uploadPanel">
+        <input type="file" id="fileInput" accept="image/*,.pdf" onchange="handleFileSelect(this)"/>
+        <div class="upload-icon">&#128443;</div>
+        <div class="upload-title">Upload Image or PDF Poster</div>
+        <div class="upload-sub">JPG, PNG, GIF, WebP, PDF &mdash; Claude reads &amp; translates the text</div>
+      </div>
+      <div class="upload-preview" id="uploadPreview">
+        <img id="previewImg" src="" alt="Preview"/>
+        <div class="upload-preview-name" id="previewName"></div>
+        <button class="btn-remove-file" onclick="removeFile()">Remove File</button>
+      </div>
+      <div class="ocr-extracted" id="ocrExtracted">
+        <div class="ocr-label">Extracted Text</div>
+        <div class="ocr-text" id="ocrText"></div>
+      </div>
+      <button class="btn-ocr-translate" id="ocrBtn" onclick="translateFile()" style="display:none;" disabled>
+        <span>&#128269;</span>
+        <span id="ocrBtnText">Extract &amp; Translate</span>
+      </button>
+    </div>
   </div>
 
   <div class="panel" style="margin-top:12px;">
@@ -234,13 +233,16 @@ footer{text-align:center;padding:24px 0 8px;font-size:11px;color:var(--muted);le
       </div>
     </div>
     <div class="output-body" id="outputBody">
-      <div class="output-placeholder">అనువాదం ఇక్కడ కనిపిస్తుంది...</div>
+      <div class="output-placeholder" id="outputPlaceholder">&#3077;&#3112;&#3137;&#3125;&#3134;&#3110;&#3074; &#3079;&#3093;&#3149;&#3093;&#3105; &#3093;&#3112;&#3135;&#3114;&#3135;&#3128;&#3149;&#3108;&#3137;&#3074;&#3110;&#3135;...</div>
     </div>
     <div class="transliteration" id="transliteration" style="display:none;"></div>
   </div>
 
   <div class="history-section" id="historySection" style="display:none;">
-    <div class="section-title">Recent Translations</div>
+    <div class="history-header">
+      <div class="section-title">Recent Translations &nbsp;</div>
+      <button class="btn-clear-all" onclick="clearAllHistory()">Clear All</button>
+    </div>
     <div class="history-list" id="historyList"></div>
   </div>
 
@@ -253,139 +255,91 @@ footer{text-align:center;padding:24px 0 8px;font-size:11px;color:var(--muted);le
 <div class="toast" id="toast"></div>
 
 <script>
-var selectedLang = 'creole';
-var isRecording = false;
+var selLang = 'creole';
+var isRec = false;
 var isSpeaking = false;
-var recognition = null;
-var currentTelugu = '';
-var translationHistory = [];
+var recog = null;
+var curTelugu = '';
+var hist = [];
 var apiKey = '';
 
-var LINGVA = [
-  'https://lingva.ml',
-  'https://lingva.thedaviddelta.com',
-  'https://translate.plausibility.cloud'
-];
-
 var LANG = {
-  creole: {
-    name: 'Kreol Morisyen',
-    color: 'var(--creole)',
-    label: 'KREOL MORISYEN',
-    speechCode: 'fr-MU',
-    lingvaCode: 'fr',
-    mmCode: 'fr',
-    prompt: 'You are a translator. Translate the given Mauritian Creole (Kreol Morisyen) text into Telugu script. Mauritian Creole is French-based. Reply ONLY as JSON with no markdown: {"telugu":"...","roman":"...","confidence":"high"}'
-  },
-  bhoj: {
-    name: 'Bhojpuri',
-    color: 'var(--bhoj)',
-    label: 'BHOJPURI',
-    speechCode: 'hi-IN',
-    lingvaCode: 'hi',
-    mmCode: 'bho',
-    prompt: 'You are a translator. Translate the given Mauritian Bhojpuri text into Telugu script. Reply ONLY as JSON with no markdown: {"telugu":"...","roman":"...","confidence":"high"}'
-  }
+  creole: { name: 'Kreol Morisyen', color: 'var(--creole)', label: 'KREOL MORISYEN', speechCode: 'fr-MU', googleCode: 'mfe', prompt: 'Translate this Mauritian Creole (Kreol Morisyen) text into Telugu script. Give only the Telugu translation meaning, not transliteration. Reply ONLY as JSON: {"telugu":"...","roman":"..."}' },
+  bhoj:   { name: 'Bhojpuri',       color: 'var(--bhoj)',   label: 'BHOJPURI',       speechCode: 'hi-IN', googleCode: 'bho', prompt: 'Translate this Mauritian Bhojpuri text into Telugu script. Give only the Telugu translation meaning, not transliteration. Reply ONLY as JSON: {"telugu":"...","roman":"..."}' }
 };
 
 function init() {
-  try {
-    var stored = localStorage.getItem('mauritelu_history');
-    if (stored) translationHistory = JSON.parse(stored);
-  } catch(e) {}
-  try {
-    var key = localStorage.getItem('mauritelu_key');
-    if (key) {
-      apiKey = key;
-      document.getElementById('apiKeyInput').value = key;
-      document.getElementById('keySection').style.borderColor = 'rgba(46,196,182,0.3)';
-    }
-  } catch(e) {}
+  try { var s = localStorage.getItem('mth'); if (s) hist = JSON.parse(s); } catch(e) {}
+  try { var k = localStorage.getItem('mtk'); if (k) { apiKey = k; document.getElementById('apiKeyInput').value = k; document.getElementById('keySection').style.borderColor = 'rgba(46,196,182,0.3)'; } } catch(e) {}
   renderHistory();
   setupSR();
 }
 
 function saveKey() {
-  var val = document.getElementById('apiKeyInput').value;
-  val = val ? val.trim() : '';
-  if (val && val.indexOf('sk-ant-') !== 0) {
-    showToast('Key should start with sk-ant-');
-    return;
-  }
-  apiKey = val;
-  if (val) {
-    try { localStorage.setItem('mauritelu_key', val); } catch(e) {}
-    document.getElementById('keySection').style.borderColor = 'rgba(46,196,182,0.4)';
-    showToast('API Key saved');
-  } else {
-    try { localStorage.removeItem('mauritelu_key'); } catch(e) {}
-    document.getElementById('keySection').style.borderColor = '';
-    showToast('Free mode active');
-  }
+  var v = document.getElementById('apiKeyInput').value;
+  v = v ? v.trim() : '';
+  if (v && v.indexOf('sk-ant-') !== 0) { showToast('Key should start with sk-ant-'); return; }
+  apiKey = v;
+  if (v) { try { localStorage.setItem('mtk', v); } catch(e) {} document.getElementById('keySection').style.borderColor = 'rgba(46,196,182,0.4)'; showToast('API Key saved'); }
+  else { try { localStorage.removeItem('mtk'); } catch(e) {} document.getElementById('keySection').style.borderColor = ''; showToast('Free mode active'); }
 }
 
-function setTier(t) {
+function setTier(n) {
   var ids = ['tier1','tier2','tier3'];
-  for (var i = 0; i < ids.length; i++) {
-    document.getElementById(ids[i]).className = 'tier tier-' + (i+1) + (t === (i+1) ? ' active-tier' : '');
+  for (var i = 0; i < 3; i++) {
+    var el = document.getElementById(ids[i]);
+    el.className = 'tier tier-' + (i+1) + (n === (i+1) ? ' active-tier' : '');
   }
 }
 
 function selectLang(lang) {
-  selectedLang = lang;
+  selLang = lang;
   var cfg = LANG[lang];
   document.getElementById('btn-creole').className = 'lang-btn' + (lang === 'creole' ? ' active-creole' : '');
-  document.getElementById('btn-bhoj').className = 'lang-btn' + (lang === 'bhoj' ? ' active-bhoj' : '');
+  document.getElementById('btn-bhoj').className   = 'lang-btn' + (lang === 'bhoj'   ? ' active-bhoj'   : '');
   document.getElementById('inputLabel').textContent = cfg.label;
   document.getElementById('inputLabel').style.color = cfg.color;
-  document.getElementById('sourceText').placeholder = 'Type in ' + cfg.name + ' or tap mic to speak';
+  document.getElementById('sourceText').placeholder = 'Type in ' + cfg.name + ' or tap MIC to speak';
   setStatus('', cfg.name + ' selected');
   setupSR();
 }
 
 function setStatus(type, msg) {
   var d = document.getElementById('statusDot');
-  var cls = 'status-dot';
-  if (type === 'thinking') cls += ' thinking';
-  else if (type === 'done') cls += ' done';
-  else if (type === 'error') cls += ' error';
-  else if (type === 'rec') cls += ' rec';
-  d.className = cls;
+  d.className = 'status-dot' + (type === 'thinking' ? ' thinking' : type === 'done' ? ' done' : type === 'error' ? ' error' : type === 'rec' ? ' rec' : '');
   document.getElementById('statusText').textContent = msg;
 }
 
 function updateCharCount() {
-  var len = document.getElementById('sourceText').value.length;
-  document.getElementById('charCount').textContent = len;
+  document.getElementById('charCount').textContent = document.getElementById('sourceText').value.length;
 }
 
 function setupSR() {
   try {
-    var SRClass = window.SpeechRecognition || window.webkitSpeechRecognition;
-    if (!SRClass) return;
-    recognition = new SRClass();
-    recognition.continuous = false;
-    recognition.interimResults = true;
-    recognition.lang = LANG[selectedLang].speechCode;
-    recognition.onresult = function(e) {
-      var interim = '', final = '';
+    var SRC = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SRC) return;
+    recog = new SRC();
+    recog.continuous = false;
+    recog.interimResults = true;
+    recog.lang = LANG[selLang].speechCode;
+    recog.onresult = function(e) {
+      var fin = '', tmp = '';
       for (var i = e.resultIndex; i < e.results.length; i++) {
-        if (e.results[i].isFinal) final += e.results[i][0].transcript;
-        else interim += e.results[i][0].transcript;
+        if (e.results[i].isFinal) fin += e.results[i][0].transcript;
+        else tmp += e.results[i][0].transcript;
       }
-      document.getElementById('sourceText').value = final || interim;
+      document.getElementById('sourceText').value = fin || tmp;
       updateCharCount();
     };
-    recognition.onend = function() {
-      isRecording = false;
-      var b = document.getElementById('micBtn');
-      b.className = 'icon-btn';
-      b.textContent = 'MIC';
+    recog.onend = function() {
+      isRec = false;
+      document.getElementById('micBtn').className = 'icon-btn';
+      document.getElementById('micBtn').textContent = 'MIC';
       setStatus('', 'Voice captured');
       if (document.getElementById('sourceText').value.trim()) doTranslate();
     };
-    recognition.onerror = function(e) {
-      isRecording = false;
+    recog.onerror = function() {
+      isRec = false;
       document.getElementById('micBtn').className = 'icon-btn';
       document.getElementById('micBtn').textContent = 'MIC';
       setStatus('error', 'Mic error');
@@ -394,16 +348,15 @@ function setupSR() {
 }
 
 function toggleRecording() {
-  if (!recognition) { showToast('Voice not supported in this browser'); return; }
-  if (isRecording) {
-    recognition.stop();
+  if (!recog) { showToast('Voice not supported'); return; }
+  if (isRec) {
+    recog.stop();
   } else {
-    isRecording = true;
-    var b = document.getElementById('micBtn');
-    b.className = 'icon-btn recording';
-    b.textContent = 'STOP';
+    isRec = true;
+    document.getElementById('micBtn').className = 'icon-btn recording';
+    document.getElementById('micBtn').textContent = 'STOP';
     setStatus('rec', 'Recording...');
-    recognition.start();
+    recog.start();
   }
 }
 
@@ -413,71 +366,55 @@ function pasteClip() {
     document.getElementById('sourceText').value = t;
     updateCharCount();
     showToast('Pasted');
-  }, function() {
-    showToast('Clipboard access denied');
-  });
+  }, function() { showToast('Clipboard access denied'); });
 }
 
 function doTranslate() {
   var src = document.getElementById('sourceText').value;
   src = src ? src.trim() : '';
   if (!src) { showToast('Please enter text to translate'); return; }
-
   var btn = document.getElementById('translateBtn');
   btn.disabled = true;
   document.getElementById('btnText').textContent = 'Translating...';
-  setOutputLoading();
-
+  setOutputText('', true);
+  document.getElementById('transliteration').style.display = 'none';
   runTranslation(src, function(result, engine) {
     btn.disabled = false;
     document.getElementById('btnText').textContent = 'Translate to Telugu';
-    if (!result) {
-      setStatus('error', 'All engines failed. Check connection.');
-      setOutputError();
-      setTier(0);
-      return;
-    }
-    currentTelugu = result.telugu;
+    if (!result) { setStatus('error', 'Translation failed. Try again.'); setOutputError(); setTier(0); return; }
+    curTelugu = result.telugu;
     showOutput(result, engine);
-    setStatus('done', 'Translated via ' + engineName(engine));
-    saveHistory(src, result.telugu, selectedLang, engine);
+    setStatus('done', 'Translated via ' + engineLabel(engine));
+    saveHist(src, result.telugu, selLang, engine);
     setTimeout(function() { speakTelugu(); }, 400);
   });
 }
 
-function engineName(e) {
+function engineLabel(e) {
   if (e === 'claude') return 'Claude AI';
-  if (e === 'mymemory') return 'MyMemory';
   if (e === 'google') return 'Google Translate';
-  return e;
+  return 'Auto Detect';
 }
 
 function runTranslation(src, cb) {
-  /* Always try Claude proxy first (server-side key), then user key, then free */
   setStatus('thinking', 'Translating...');
   setTier(1);
-  callClaude(src, function(r) {
+  callProxy(src, function(r) {
     if (r) { cb(r, 'claude'); return; }
-    tryFreeFallback(src, cb);
-  });
-}
-
-function tryFreeFallback(src, cb) {
-  /* Free fallback: Google Translate with correct Creole/Bhojpuri codes */
-  setStatus('thinking', 'Trying Google Translate...');
-  setTier(2);
-  tryGoogleTranslate(src, function(r) {
-    if (r) { cb(r, 'google'); return; }
-    setStatus('thinking', 'Trying auto-detect...');
-    setTier(3);
-    tryGoogleAuto(src, function(r2) {
-      cb(r2, 'google');
+    setStatus('thinking', 'Trying Google Translate...');
+    setTier(2);
+    callGoogle(src, LANG[selLang].googleCode, function(r2) {
+      if (r2) { cb(r2, 'google'); return; }
+      setStatus('thinking', 'Trying auto-detect...');
+      setTier(3);
+      callGoogle(src, 'auto', function(r3) {
+        cb(r3, 'auto');
+      });
     });
   });
 }
 
-function callClaude(src, cb) {
-  /* Call our Vercel serverless proxy - no CORS, API key stored server-side */
+function callProxy(src, cb) {
   var xhr = new XMLHttpRequest();
   xhr.open('POST', '/api/translate', true);
   xhr.setRequestHeader('Content-Type', 'application/json');
@@ -485,28 +422,18 @@ function callClaude(src, cb) {
   xhr.onload = function() {
     try {
       var d = JSON.parse(xhr.responseText);
-      if (d && d.telugu) {
-        cb({ telugu: d.telugu, roman: d.roman || '', confidence: 'high' });
-      } else {
-        /* If proxy not configured, try direct browser call with user key */
-        callClaudeDirect(src, cb);
-      }
-    } catch(e) { callClaudeDirect(src, cb); }
+      if (d && d.telugu) { cb({ telugu: d.telugu, roman: d.roman || '', confidence: 'high' }); return; }
+      if (apiKey) { callClaudeDirect(src, cb); return; }
+      cb(null);
+    } catch(e) { if (apiKey) callClaudeDirect(src, cb); else cb(null); }
   };
-  xhr.onerror = function() { callClaudeDirect(src, cb); };
-  xhr.ontimeout = function() { callClaudeDirect(src, cb); };
-  xhr.send(JSON.stringify({ text: src, lang: selectedLang }));
+  xhr.onerror = function() { if (apiKey) callClaudeDirect(src, cb); else cb(null); };
+  xhr.ontimeout = function() { if (apiKey) callClaudeDirect(src, cb); else cb(null); };
+  xhr.send(JSON.stringify({ text: src, lang: selLang }));
 }
 
 function callClaudeDirect(src, cb) {
-  if (!apiKey) { cb(null); return; }
-  var cfg = LANG[selectedLang];
-  var body = JSON.stringify({
-    model: 'claude-sonnet-4-20250514',
-    max_tokens: 500,
-    system: cfg.prompt,
-    messages: [{ role: 'user', content: src }]
-  });
+  var cfg = LANG[selLang];
   var xhr = new XMLHttpRequest();
   xhr.open('POST', 'https://api.anthropic.com/v1/messages', true);
   xhr.setRequestHeader('Content-Type', 'application/json');
@@ -518,34 +445,20 @@ function callClaudeDirect(src, cb) {
     try {
       var d = JSON.parse(xhr.responseText);
       var txt = d.content[0].text;
-      txt = txt.replace(/[\u0060]{3}json/g, '').replace(/[\u0060]{3}/g, '').trim();
-      cb(JSON.parse(txt));
+      var BT = String.fromCharCode(96);
+      txt = txt.split(BT+BT+BT+'json').join('').split(BT+BT+BT).join('').trim();
+      var parsed = JSON.parse(txt);
+      cb(parsed);
     } catch(e) { cb(null); }
   };
   xhr.onerror = function() { cb(null); };
   xhr.ontimeout = function() { cb(null); };
-  xhr.send(body);
+  xhr.send(JSON.stringify({ model: 'claude-sonnet-4-20250514', max_tokens: 500, system: cfg.prompt, messages: [{ role: 'user', content: src }] }));
 }
 
-function callLingva(src, instIdx, cb) {
-  cb(null); /* Skip Lingva - CORS blocked in iOS webview */
-}
-
-function callMyMemory(src, cb) {
-  /* Step 1: translate source to English first, then English to Telugu */
-  var srcLang = selectedLang === 'creole' ? 'fr' : 'hi';
-  /* Use Google as primary free engine - it knows mfe (Morisyen) and bho (Bhojpuri) */
-  tryGoogleTranslate(src, function(r) {
-    if (r) { cb(r); return; }
-    /* Fallback: MyMemory en->te with two-hop */
-    twoHopTranslate(src, srcLang, cb);
-  });
-}
-
-function tryGoogleTranslate(src, cb) {
-  /* Use correct ISO codes: mfe=Mauritian Creole, bho=Bhojpuri */
-  var srcLang = selectedLang === 'creole' ? 'mfe' : 'bho';
-  var url = 'https://translate.googleapis.com/translate_a/single?client=gtx&sl=' + srcLang + '&tl=te&dt=t&q=' + encodeURIComponent(src);
+function callGoogle(src, langCode, cb) {
+  var sl = langCode === 'auto' ? 'auto' : langCode;
+  var url = 'https://translate.googleapis.com/translate_a/single?client=gtx&sl=' + sl + '&tl=te&dt=t&q=' + encodeURIComponent(src);
   var xhr = new XMLHttpRequest();
   xhr.open('GET', url, true);
   xhr.timeout = 10000;
@@ -553,47 +466,10 @@ function tryGoogleTranslate(src, cb) {
     try {
       var d = JSON.parse(xhr.responseText);
       var result = '';
-      if (d && d[0]) {
-        for (var i = 0; i < d[0].length; i++) {
-          if (d[0][i] && d[0][i][0]) result += d[0][i][0];
-        }
-      }
-      /* Reject if output is same as input or contains original Latin words */
-      var teluguChars = result.replace(/[\x00-\x7F]/g, '');
-      if (result && teluguChars.length > 0) {
-        cb({ telugu: result, roman: '', confidence: 'medium' });
-      } else {
-        /* Try auto-detect as fallback */
-        tryGoogleAuto(src, cb);
-      }
-    } catch(e) { tryGoogleAuto(src, cb); }
-  };
-  xhr.onerror = function() { tryGoogleAuto(src, cb); };
-  xhr.ontimeout = function() { tryGoogleAuto(src, cb); };
-  xhr.send();
-}
-
-function tryGoogleAuto(src, cb) {
-  /* sl=auto lets Google detect the language */
-  var url = 'https://translate.googleapis.com/translate_a/single?client=gtx&sl=auto&tl=te&dt=t&q=' + encodeURIComponent(src);
-  var xhr = new XMLHttpRequest();
-  xhr.open('GET', url, true);
-  xhr.timeout = 10000;
-  xhr.onload = function() {
-    try {
-      var d = JSON.parse(xhr.responseText);
-      var result = '';
-      if (d && d[0]) {
-        for (var i = 0; i < d[0].length; i++) {
-          if (d[0][i] && d[0][i][0]) result += d[0][i][0];
-        }
-      }
-      var teluguChars = result.replace(/[\x00-\x7F]/g, '');
-      if (result && teluguChars.length > 0) {
-        cb({ telugu: result, roman: '', confidence: 'low' });
-      } else {
-        cb(null);
-      }
+      if (d && d[0]) { for (var i = 0; i < d[0].length; i++) { if (d[0][i] && d[0][i][0]) result += d[0][i][0]; } }
+      var teluguOnly = result.replace(/[\x00-\x7F]/g, '');
+      if (result && teluguOnly.length > 0) { cb({ telugu: result, roman: '', confidence: 'medium' }); }
+      else { cb(null); }
     } catch(e) { cb(null); }
   };
   xhr.onerror = function() { cb(null); };
@@ -601,77 +477,30 @@ function tryGoogleAuto(src, cb) {
   xhr.send();
 }
 
-function twoHopTranslate(src, srcLang, cb) {
-  /* Hop 1: source lang -> English via MyMemory */
-  var url1 = 'https://api.mymemory.translated.net/get?q=' + encodeURIComponent(src) + '&langpair=' + srcLang + '|en';
-  var xhr1 = new XMLHttpRequest();
-  xhr1.open('GET', url1, true);
-  xhr1.timeout = 8000;
-  xhr1.onload = function() {
-    try {
-      var d = JSON.parse(xhr1.responseText);
-      var eng = (d.responseData && d.responseData.translatedText) ? d.responseData.translatedText : '';
-      if (!eng || eng.toLowerCase() === src.toLowerCase()) { cb(null); return; }
-      /* Hop 2: English -> Telugu via MyMemory */
-      var url2 = 'https://api.mymemory.translated.net/get?q=' + encodeURIComponent(eng) + '&langpair=en|te';
-      var xhr2 = new XMLHttpRequest();
-      xhr2.open('GET', url2, true);
-      xhr2.timeout = 8000;
-      xhr2.onload = function() {
-        try {
-          var d2 = JSON.parse(xhr2.responseText);
-          var tel = (d2.responseData && d2.responseData.translatedText) ? d2.responseData.translatedText : '';
-          var teluguChars = tel.replace(/[\x00-\x7F]/g, '');
-          if (d2.responseStatus === 200 && tel && teluguChars.length > 0) {
-            cb({ telugu: tel, roman: '', confidence: 'low' });
-          } else { cb(null); }
-        } catch(e) { cb(null); }
-      };
-      xhr2.onerror = function() { cb(null); };
-      xhr2.ontimeout = function() { cb(null); };
-      xhr2.send();
-    } catch(e) { cb(null); }
-  };
-  xhr1.onerror = function() { cb(null); };
-  xhr1.ontimeout = function() { cb(null); };
-  xhr1.send();
-}
-
-function setOutputLoading() {
+function setOutputText(msg, isLoading) {
   var ob = document.getElementById('outputBody');
   ob.innerHTML = '';
   var p = document.createElement('div');
   p.className = 'output-placeholder';
-  p.textContent = document.getElementById('loadingText').textContent;
+  p.textContent = isLoading ? 'Translating...' : msg;
   ob.appendChild(p);
-  document.getElementById('transliteration').style.display = 'none';
 }
 
 function setOutputError() {
-  var ob = document.getElementById('outputBody');
-  ob.innerHTML = '';
-  var p = document.createElement('div');
-  p.className = 'output-placeholder';
-  p.textContent = 'Translation failed. Please try again.';
-  ob.appendChild(p);
+  setOutputText('Translation failed. Please try again.', false);
 }
 
 function showOutput(result, engine) {
   var ob = document.getElementById('outputBody');
   ob.innerHTML = '';
-
   var tag = document.createElement('span');
-  tag.className = 'engine-tag engine-tag-' + engine;
-  if (engine === 'claude') tag.textContent = 'Claude AI';
-  else if (engine === 'lingva') tag.textContent = 'Lingva Translate';
-  else tag.textContent = 'MyMemory API';
+  tag.className = 'engine-tag engine-tag-' + (engine === 'auto' ? 'google' : engine);
+  tag.textContent = engineLabel(engine);
   ob.appendChild(tag);
-
   var tv = document.createElement('div');
   tv.className = 'telugu-text';
   tv.textContent = result.telugu;
   ob.appendChild(tv);
-
   if (result.roman) {
     var tr = document.getElementById('transliteration');
     tr.style.display = 'block';
@@ -680,7 +509,7 @@ function showOutput(result, engine) {
 }
 
 function speakTelugu() {
-  if (!currentTelugu) return;
+  if (!curTelugu) return;
   if (!window.speechSynthesis) { showToast('TTS not supported'); return; }
   if (isSpeaking) {
     window.speechSynthesis.cancel();
@@ -689,48 +518,28 @@ function speakTelugu() {
     return;
   }
   window.speechSynthesis.cancel();
-  var u = new SpeechSynthesisUtterance(currentTelugu);
-  var voices = window.speechSynthesis.getVoices();
-  for (var i = 0; i < voices.length; i++) {
-    if (voices[i].lang.indexOf('te') === 0) { u.voice = voices[i]; break; }
-  }
-  if (!u.voice) {
-    for (var j = 0; j < voices.length; j++) {
-      if (voices[j].lang.indexOf('hi') === 0) { u.voice = voices[j]; break; }
-    }
-  }
-  u.lang = 'te-IN';
-  u.rate = 0.85;
+  var u = new SpeechSynthesisUtterance(curTelugu);
+  var vs = window.speechSynthesis.getVoices();
+  for (var i = 0; i < vs.length; i++) { if (vs[i].lang.indexOf('te') === 0) { u.voice = vs[i]; break; } }
+  u.lang = 'te-IN'; u.rate = 0.85;
   isSpeaking = true;
   document.getElementById('speakBtn').className = 'icon-btn speaking';
-  u.onend = function() {
-    isSpeaking = false;
-    document.getElementById('speakBtn').className = 'icon-btn';
-    setStatus('done', 'Done speaking');
-  };
+  u.onend = function() { isSpeaking = false; document.getElementById('speakBtn').className = 'icon-btn'; setStatus('done', 'Done speaking'); };
   window.speechSynthesis.speak(u);
 }
 
 function copyTelugu() {
-  if (!currentTelugu) return;
+  if (!curTelugu) return;
   if (!navigator.clipboard) { showToast('Copy not available'); return; }
-  navigator.clipboard.writeText(currentTelugu).then(function() {
-    showToast('Copied');
-  }, function() {
-    showToast('Copy failed');
-  });
+  navigator.clipboard.writeText(curTelugu).then(function() { showToast('Copied!'); }, function() { showToast('Copy failed'); });
 }
 
 function clearAll() {
   document.getElementById('sourceText').value = '';
   updateCharCount();
-  currentTelugu = '';
-  var ob = document.getElementById('outputBody');
-  ob.innerHTML = '';
-  var p = document.createElement('div');
-  p.className = 'output-placeholder';
-  p.textContent = document.getElementById('emptyText').textContent;
-  ob.appendChild(p);
+  curTelugu = '';
+  setOutputText('', false);
+  document.getElementById('outputPlaceholder') && (document.getElementById('outputBody').innerHTML = '<div class="output-placeholder" id="outputPlaceholder">&#3077;&#3112;&#3137;&#3125;&#3134;&#3110;&#3074; &#3079;&#3093;&#3149;&#3093;&#3105; &#3093;&#3112;&#3135;&#3114;&#3135;&#3128;&#3149;&#3108;&#3137;&#3074;&#3110;&#3135;...</div>');
   document.getElementById('transliteration').style.display = 'none';
   if (window.speechSynthesis) window.speechSynthesis.cancel();
   isSpeaking = false;
@@ -739,65 +548,92 @@ function clearAll() {
   setStatus('', 'Cleared');
 }
 
-function saveHistory(source, telugu, lang, engine) {
-  translationHistory.unshift({ source: source, telugu: telugu, lang: lang, engine: engine, ts: new Date().toLocaleTimeString() });
-  if (translationHistory.length > 10) translationHistory = translationHistory.slice(0, 10);
-  try { localStorage.setItem('mauritelu_history', JSON.stringify(translationHistory)); } catch(e) {}
+function saveHist(source, telugu, lang, engine) {
+  hist.unshift({ source: source, telugu: telugu, lang: lang, engine: engine, ts: new Date().toLocaleTimeString() });
+  if (hist.length > 20) hist = hist.slice(0, 20);
+  try { localStorage.setItem('mth', JSON.stringify(hist)); } catch(e) {}
   renderHistory();
+}
+
+function deleteHist(idx) {
+  hist.splice(idx, 1);
+  try { localStorage.setItem('mth', JSON.stringify(hist)); } catch(e) {}
+  renderHistory();
+  showToast('Deleted');
+}
+
+function clearAllHistory() {
+  hist = [];
+  try { localStorage.removeItem('mth'); } catch(e) {}
+  renderHistory();
+  showToast('History cleared');
 }
 
 function renderHistory() {
   var sec = document.getElementById('historySection');
   var list = document.getElementById('historyList');
-  if (!translationHistory.length) { sec.style.display = 'none'; return; }
+  if (!sec || !list) return;
+  if (!hist.length) { sec.style.display = 'none'; return; }
   sec.style.display = 'block';
   list.innerHTML = '';
-  for (var i = 0; i < translationHistory.length; i++) {
+  for (var i = 0; i < hist.length; i++) {
     (function(item, idx) {
       var cfg = LANG[item.lang] || LANG.creole;
-      var div = document.createElement('div');
-      div.className = 'history-item';
-      div.onclick = function() { loadHistory(idx); };
+      var row = document.createElement('div');
+      row.className = 'history-item';
 
-      var left = document.createElement('div');
+      var contentDiv = document.createElement('div');
+      contentDiv.className = 'history-item-content';
+      contentDiv.onclick = function() { loadHist(idx); };
 
-      var src = document.createElement('div');
-      src.className = 'history-source';
-      src.textContent = item.source.length > 80 ? item.source.slice(0,80) + '...' : item.source;
-      left.appendChild(src);
+      var srcEl = document.createElement('div');
+      srcEl.className = 'history-source';
+      srcEl.textContent = item.source.length > 70 ? item.source.slice(0, 70) + '...' : item.source;
+      contentDiv.appendChild(srcEl);
 
-      var tgt = document.createElement('div');
-      tgt.className = 'history-target';
-      tgt.textContent = item.telugu.length > 60 ? item.telugu.slice(0,60) + '...' : item.telugu;
-      left.appendChild(tgt);
+      var tgtEl = document.createElement('div');
+      tgtEl.className = 'history-target';
+      tgtEl.textContent = item.telugu.length > 55 ? item.telugu.slice(0, 55) + '...' : item.telugu;
+      contentDiv.appendChild(tgtEl);
 
-      var meta = document.createElement('div');
-      meta.className = 'history-meta';
-      meta.textContent = (item.ts || '') + ' ' + (item.engine || '');
-      left.appendChild(meta);
+      var metaEl = document.createElement('div');
+      metaEl.className = 'history-meta';
+      metaEl.textContent = (item.ts || '') + '  ' + (item.engine || '');
+      contentDiv.appendChild(metaEl);
 
-      div.appendChild(left);
+      row.appendChild(contentDiv);
 
       var badge = document.createElement('span');
       badge.className = 'history-lang-badge';
-      badge.style.background = cfg.color + '22';
-      badge.style.color = cfg.color;
-      badge.style.border = '1px solid ' + cfg.color + '44';
+      badge.style.cssText = 'background:' + cfg.color + '22;color:' + cfg.color + ';border:1px solid ' + cfg.color + '44;';
       badge.textContent = cfg.name;
-      div.appendChild(badge);
+      row.appendChild(badge);
 
-      list.appendChild(div);
-    })(translationHistory[i], i);
+      var delBtn = document.createElement('button');
+      delBtn.className = 'history-del';
+      delBtn.textContent = 'X';
+      delBtn.title = 'Delete';
+      delBtn.onclick = function(e) { e.stopPropagation(); deleteHist(idx); };
+
+      /* Long press for mobile */
+      var timer = null;
+      row.addEventListener('touchstart', function() { timer = setTimeout(function() { delBtn.style.opacity = '1'; }, 600); });
+      row.addEventListener('touchend', function() { clearTimeout(timer); });
+      row.addEventListener('touchmove', function() { clearTimeout(timer); });
+
+      row.appendChild(delBtn);
+      list.appendChild(row);
+    })(hist[i], i);
   }
 }
 
-function loadHistory(i) {
-  var item = translationHistory[i];
-  selectedLang = item.lang;
+function loadHist(idx) {
+  var item = hist[idx];
+  selLang = item.lang;
   selectLang(item.lang);
   document.getElementById('sourceText').value = item.source;
   updateCharCount();
-  currentTelugu = item.telugu;
+  curTelugu = item.telugu;
   var ob = document.getElementById('outputBody');
   ob.innerHTML = '';
   var tv = document.createElement('div');
@@ -816,12 +652,272 @@ function showToast(msg) {
   setTimeout(function() { t.className = 'toast'; }, 2800);
 }
 
-window.onload = function() { init(); };
+
+/* -- TAB SWITCHING -- */
+function switchTab(tab) {
+  document.getElementById('pane-text').style.display = tab === 'text' ? '' : 'none';
+  document.getElementById('pane-upload').style.display = tab === 'upload' ? '' : 'none';
+  document.getElementById('tab-text').className = 'tab-btn' + (tab === 'text' ? ' active' : '');
+  document.getElementById('tab-upload').className = 'tab-btn' + (tab === 'upload' ? ' active' : '');
+}
+
+/* -- FILE HANDLING -- */
+var uploadedFile = null;
+var uploadedDataURL = null;
+
+function handleFileSelect(input) {
+  var file = input.files && input.files[0];
+  if (!file) return;
+  uploadedFile = file;
+  var preview = document.getElementById('uploadPreview');
+  var previewImg = document.getElementById('previewImg');
+  var previewName = document.getElementById('previewName');
+  var ocrBtn = document.getElementById('ocrBtn');
+  var ocrExtracted = document.getElementById('ocrExtracted');
+
+  ocrExtracted.style.display = 'none';
+  document.getElementById('ocrText').textContent = '';
+
+  var reader = new FileReader();
+  reader.onload = function(e) {
+    uploadedDataURL = e.target.result;
+    if (file.type === 'application/pdf') {
+      previewImg.style.display = 'none';
+      previewName.textContent = 'PDF: ' + file.name + ' (' + Math.round(file.size/1024) + ' KB)';
+    } else {
+      previewImg.style.display = 'block';
+      previewImg.src = uploadedDataURL;
+      previewName.textContent = file.name + ' (' + Math.round(file.size/1024) + ' KB)';
+    }
+    preview.style.display = 'block';
+    ocrBtn.style.display = 'flex';
+    ocrBtn.disabled = false;
+  };
+  reader.readAsDataURL(file);
+}
+
+function removeFile() {
+  uploadedFile = null;
+  uploadedDataURL = null;
+  document.getElementById('uploadPreview').style.display = 'none';
+  document.getElementById('ocrExtracted').style.display = 'none';
+  document.getElementById('ocrBtn').style.display = 'none';
+  document.getElementById('fileInput').value = '';
+  document.getElementById('previewImg').src = '';
+  document.getElementById('previewName').textContent = '';
+  document.getElementById('ocrText').textContent = '';
+}
+
+function translateFile() {
+  if (!uploadedFile || !uploadedDataURL) { showToast('Please select a file first'); return; }
+  if (!apiKey) { showToast('API Key required for image/PDF translation'); return; }
+
+  var btn = document.getElementById('ocrBtn');
+  btn.disabled = true;
+  document.getElementById('ocrBtnText').textContent = 'Extracting text...';
+  setStatus('thinking', 'Reading file with Claude Vision...');
+  setTier(1);
+
+  var cfg = LANG[selLang];
+  var imgPrompt = 'This image/document contains text in ' + cfg.name + '. Please: 1) Extract ALL the text you can see in the image, 2) Translate that text into Telugu script. Reply ONLY as JSON: {"extracted":"<all text found>","telugu":"<Telugu translation>","roman":"<romanized Telugu>"}';
+
+  if (uploadedFile.type === 'application/pdf') {
+    extractPDFAndTranslate(imgPrompt, btn);
+  } else {
+    sendImageToClaude(uploadedDataURL, uploadedFile.type, imgPrompt, btn);
+  }
+}
+
+function sendImageToClaude(dataURL, mimeType, prompt, btn) {
+  var base64 = dataURL.split(',')[1];
+  var safeMime = mimeType || 'image/jpeg';
+  if (safeMime === 'image/jpg') safeMime = 'image/jpeg';
+
+  var payload = {
+    model: 'claude-sonnet-4-20250514',
+    max_tokens: 1000,
+    messages: [{
+      role: 'user',
+      content: [
+        { type: 'image', source: { type: 'base64', media_type: safeMime, data: base64 } },
+        { type: 'text', text: prompt }
+      ]
+    }]
+  };
+
+  var xhr = new XMLHttpRequest();
+  xhr.open('POST', 'https://api.anthropic.com/v1/messages', true);
+  xhr.setRequestHeader('Content-Type', 'application/json');
+  xhr.setRequestHeader('x-api-key', apiKey);
+  xhr.setRequestHeader('anthropic-version', '2023-06-01');
+  xhr.setRequestHeader('anthropic-dangerous-direct-browser-access', 'true');
+  xhr.timeout = 30000;
+  xhr.onload = function() {
+    btn.disabled = false;
+    document.getElementById('ocrBtnText').textContent = 'Extract & Translate';
+    try {
+      var d = JSON.parse(xhr.responseText);
+      if (!d.content || !d.content[0]) { throw new Error('No response'); }
+      var txt = d.content[0].text;
+      var BT = String.fromCharCode(96);
+      txt = txt.split(BT+BT+BT+'json').join('').split(BT+BT+BT).join('').trim();
+      var parsed = JSON.parse(txt);
+      showOCRResult(parsed);
+    } catch(e) {
+      setStatus('error', 'Could not read file. Try a clearer image.');
+      showToast('Extraction failed');
+    }
+  };
+  xhr.onerror = function() {
+    btn.disabled = false;
+    document.getElementById('ocrBtnText').textContent = 'Extract & Translate';
+    setStatus('error', 'Network error');
+  };
+  xhr.ontimeout = function() {
+    btn.disabled = false;
+    document.getElementById('ocrBtnText').textContent = 'Extract & Translate';
+    setStatus('error', 'Timeout - try a smaller file');
+  };
+  xhr.send(JSON.stringify(payload));
+}
+
+function extractPDFAndTranslate(prompt, btn) {
+  /* For PDF: use PDF.js to render first page as canvas, then send as image */
+  var script = document.getElementById('pdfjs-script');
+  if (!script) {
+    script = document.createElement('script');
+    script.id = 'pdfjs-script';
+    script.src = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js';
+    script.onload = function() { doRenderPDF(prompt, btn); };
+    script.onerror = function() {
+      /* Fallback: send raw PDF base64 to Claude directly */
+      sendPDFDocToClaude(prompt, btn);
+    };
+    document.head.appendChild(script);
+  } else {
+    doRenderPDF(prompt, btn);
+  }
+}
+
+function doRenderPDF(prompt, btn) {
+  try {
+    var pdfjsLib = window['pdfjs-dist/build/pdf'];
+    if (!pdfjsLib) { sendPDFDocToClaude(prompt, btn); return; }
+    pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+    document.getElementById('ocrBtnText').textContent = 'Rendering PDF...';
+    var base64 = uploadedDataURL.split(',')[1];
+    var raw = atob(base64);
+    var arr = new Uint8Array(raw.length);
+    for (var i = 0; i < raw.length; i++) arr[i] = raw.charCodeAt(i);
+    pdfjsLib.getDocument({ data: arr }).promise.then(function(pdf) {
+      pdf.getPage(1).then(function(page) {
+        var scale = 2.0;
+        var vp = page.getViewport({ scale: scale });
+        var canvas = document.createElement('canvas');
+        canvas.width = vp.width;
+        canvas.height = vp.height;
+        var ctx = canvas.getContext('2d');
+        page.render({ canvasContext: ctx, viewport: vp }).promise.then(function() {
+          var imgData = canvas.toDataURL('image/jpeg', 0.85);
+          sendImageToClaude(imgData, 'image/jpeg', prompt, btn);
+        });
+      });
+    }, function() { sendPDFDocToClaude(prompt, btn); });
+  } catch(e) { sendPDFDocToClaude(prompt, btn); }
+}
+
+function sendPDFDocToClaude(prompt, btn) {
+  /* Send PDF directly as document type to Claude */
+  var base64 = uploadedDataURL.split(',')[1];
+  var payload = {
+    model: 'claude-sonnet-4-20250514',
+    max_tokens: 1000,
+    messages: [{
+      role: 'user',
+      content: [
+        { type: 'document', source: { type: 'base64', media_type: 'application/pdf', data: base64 } },
+        { type: 'text', text: prompt }
+      ]
+    }]
+  };
+  var xhr = new XMLHttpRequest();
+  xhr.open('POST', 'https://api.anthropic.com/v1/messages', true);
+  xhr.setRequestHeader('Content-Type', 'application/json');
+  xhr.setRequestHeader('x-api-key', apiKey);
+  xhr.setRequestHeader('anthropic-version', '2023-06-01');
+  xhr.setRequestHeader('anthropic-dangerous-direct-browser-access', 'true');
+  xhr.timeout = 30000;
+  xhr.onload = function() {
+    btn.disabled = false;
+    document.getElementById('ocrBtnText').textContent = 'Extract & Translate';
+    try {
+      var d = JSON.parse(xhr.responseText);
+      var txt = d.content[0].text;
+      var BT = String.fromCharCode(96);
+      txt = txt.split(BT+BT+BT+'json').join('').split(BT+BT+BT).join('').trim();
+      showOCRResult(JSON.parse(txt));
+    } catch(e) { setStatus('error', 'Could not read PDF'); showToast('PDF extraction failed'); }
+  };
+  xhr.onerror = function() { btn.disabled = false; document.getElementById('ocrBtnText').textContent = 'Extract & Translate'; setStatus('error', 'Network error'); };
+  xhr.ontimeout = function() { btn.disabled = false; document.getElementById('ocrBtnText').textContent = 'Extract & Translate'; setStatus('error', 'Timeout'); };
+  xhr.send(JSON.stringify(payload));
+}
+
+function showOCRResult(parsed) {
+  curTelugu = parsed.telugu || '';
+  /* Show extracted text */
+  var ocrBox = document.getElementById('ocrExtracted');
+  var ocrText = document.getElementById('ocrText');
+  if (parsed.extracted) {
+    ocrBox.style.display = 'block';
+    ocrText.textContent = parsed.extracted;
+  }
+  /* Show Telugu output */
+  var ob = document.getElementById('outputBody');
+  ob.innerHTML = '';
+  var tag = document.createElement('span');
+  tag.className = 'engine-tag engine-tag-claude';
+  tag.textContent = 'Claude Vision';
+  ob.appendChild(tag);
+  var tv = document.createElement('div');
+  tv.className = 'telugu-text';
+  tv.textContent = curTelugu;
+  ob.appendChild(tv);
+  if (parsed.roman) {
+    var tr = document.getElementById('transliteration');
+    tr.style.display = 'block';
+    tr.textContent = 'Roman: ' + parsed.roman;
+  }
+  setStatus('done', 'File translated via Claude Vision');
+  setTier(1);
+  saveHist('[Image/PDF] ' + (parsed.extracted ? parsed.extracted.slice(0,40) : 'file'), curTelugu, selLang, 'claude');
+  setTimeout(function() { speakTelugu(); }, 400);
+}
+
+/* Drag and drop support */
+function initUploadDrag() {
+  var panel = document.getElementById('uploadPanel');
+  if (!panel) return;
+  panel.addEventListener('dragover', function(e) { e.preventDefault(); panel.className = 'upload-panel drag-over'; });
+  panel.addEventListener('dragleave', function() { panel.className = 'upload-panel'; });
+  panel.addEventListener('drop', function(e) {
+    e.preventDefault();
+    panel.className = 'upload-panel';
+    var file = e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0];
+    if (file) {
+      var dt = new DataTransfer();
+      dt.items.add(file);
+      document.getElementById('fileInput').files = dt.files;
+      handleFileSelect(document.getElementById('fileInput'));
+    }
+  });
+}
+
+window.onload = function() { init(); initUploadDrag(); };
 if (window.speechSynthesis) {
   window.speechSynthesis.getVoices();
   window.speechSynthesis.onvoiceschanged = function() { window.speechSynthesis.getVoices(); };
 }
-
 </script>
 </body>
 </html>
