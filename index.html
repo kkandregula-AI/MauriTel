@@ -140,6 +140,15 @@ footer{text-align:center;padding:24px 0 8px;font-size:11px;color:var(--muted);le
 .key-section-collapsed{cursor:pointer;}
 .tab-key-badge{font-size:9px;font-weight:700;letter-spacing:1px;padding:2px 6px;border-radius:8px;background:rgba(232,184,75,0.2);color:var(--gold);border:1px solid rgba(232,184,75,0.3);margin-left:5px;vertical-align:middle;}
 .upload-requires-key{background:rgba(255,92,107,0.1);border:1px solid rgba(255,92,107,0.25);border-radius:8px;padding:8px 12px;font-size:12px;color:var(--red);margin-top:10px;text-align:center;}
+.engine-tag-nllb{background:rgba(255,138,76,0.15);color:#ff8a4c;border:1px solid rgba(255,138,76,0.3);}
+.hf-key-section{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px;margin-bottom:16px;}
+.hf-key-section label{font-size:12px;color:var(--muted);display:block;margin-bottom:8px;letter-spacing:1px;}
+.hf-key-row{display:flex;gap:8px;}
+.hf-key-input{flex:1;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:10px 14px;color:var(--text);font-family:'Space Mono',monospace;font-size:13px;outline:none;}
+.hf-key-input:focus{border-color:var(--telugu);}
+.btn-save-hf{padding:10px 16px;border-radius:8px;border:none;cursor:pointer;background:var(--telugu);color:#051210;font-weight:600;font-size:13px;white-space:nowrap;}
+.hf-key-hint{font-size:11px;color:var(--muted);margin-top:8px;line-height:1.6;}
+.hf-free-badge{display:inline-block;font-size:10px;font-weight:700;padding:2px 7px;border-radius:10px;background:rgba(93,240,176,0.15);color:var(--telugu);border:1px solid rgba(93,240,176,0.3);margin-left:6px;vertical-align:middle;}
 </style>
 </head>
 <body>
@@ -161,9 +170,9 @@ footer{text-align:center;padding:24px 0 8px;font-size:11px;color:var(--muted);le
   <div class="engine-indicator">
     <div class="tier tier-1" id="tier1"><span class="tier-dot"></span>Claude AI</div>
     <span class="tier-sep">&rsaquo;</span>
-    <div class="tier tier-2" id="tier2"><span class="tier-dot"></span>Google</div>
+    <div class="tier tier-2" id="tier2"><span class="tier-dot"></span>NLLB-200</div>
     <span class="tier-sep">&rsaquo;</span>
-    <div class="tier tier-3" id="tier3"><span class="tier-dot"></span>Auto</div>
+    <div class="tier tier-3" id="tier3"><span class="tier-dot"></span>Google</div>
   </div>
 
   <div class="api-needed-banner" id="apiBanner">
@@ -174,12 +183,24 @@ footer{text-align:center;padding:24px 0 8px;font-size:11px;color:var(--muted);le
     </div>
   </div>
   <div class="key-section" id="keySection">
-    <label>API KEY &nbsp;<span style="color:var(--teal);font-size:10px;font-weight:600;">OPTIONAL - Best Quality</span></label>
+    <label>ANTHROPIC API KEY &nbsp;<span style="color:var(--teal);font-size:10px;font-weight:600;">OPTIONAL - Best Quality</span></label>
     <div class="key-row">
       <input type="password" class="key-input" id="apiKeyInput" placeholder="sk-ant-... (leave blank for free)"/>
       <button class="btn-save-key" onclick="saveKey()">Save</button>
     </div>
-    <div class="key-hint">No key? Google used as fallback but gives poor Creole/Bhojpuri results. Add key for accurate translations.</div>
+    <div class="key-hint">Best quality. Understands Creole &amp; Bhojpuri meaning accurately.</div>
+  </div>
+
+  <div class="hf-key-section" id="hfKeySection">
+    <label>HUGGINGFACE TOKEN <span class="hf-free-badge">FREE</span> &nbsp;<span style="color:var(--telugu);font-size:10px;font-weight:600;">NLLB-200 by Meta AI</span></label>
+    <div class="hf-key-row">
+      <input type="password" class="hf-key-input" id="hfKeyInput" placeholder="hf_... (free at huggingface.co/settings/tokens)"/>
+      <button class="btn-save-hf" onclick="saveHfKey()">Save</button>
+    </div>
+    <div class="hf-key-hint">
+      NLLB-200 natively supports Mauritian Creole (mfe) &amp; Bhojpuri (bho) &rarr; Telugu. 100% free, no credit card.
+      Get token at <strong>huggingface.co/settings/tokens</strong> &rarr; New Token &rarr; Read access.
+    </div>
   </div>
 
   <!-- Unified language card -->
@@ -291,6 +312,7 @@ footer{text-align:center;padding:24px 0 8px;font-size:11px;color:var(--muted);le
 
 <script>
 var selLang = 'auto';
+var hfKey = '';
 var isRec = false;
 var isSpeaking = false;
 var recog = null;
@@ -309,6 +331,7 @@ var selLangForSpeech = 'fr-MU';
 function init() {
   try { var s = localStorage.getItem('mth'); if (s) hist = JSON.parse(s); } catch(e) {}
   try { var k = localStorage.getItem('mtk'); if (k) { apiKey = k; document.getElementById('apiKeyInput').value = k; document.getElementById('keySection').style.borderColor = 'rgba(46,196,182,0.3)'; var b = document.getElementById('apiBanner'); if (b) b.style.display = 'none'; } } catch(e) {}
+  try { var hk = localStorage.getItem('mthf'); if (hk) { hfKey = hk; document.getElementById('hfKeyInput').value = hk; document.getElementById('hfKeySection').style.borderColor = 'rgba(93,240,176,0.3)'; updateTierLabels(); } } catch(e) {}
   renderHistory();
   setupSR();
 }
@@ -330,6 +353,37 @@ function saveKey() {
     var banner2 = document.getElementById('apiBanner');
     if (banner2) banner2.style.display = 'flex';
     showToast('Free mode - Google fallback (limited quality)');
+  }
+}
+
+function saveHfKey() {
+  var v = document.getElementById('hfKeyInput').value;
+  v = v ? v.trim() : '';
+  if (v && v.indexOf('hf_') !== 0) { showToast('HF token should start with hf_'); return; }
+  hfKey = v;
+  if (v) {
+    try { localStorage.setItem('mthf', v); } catch(e) {}
+    document.getElementById('hfKeySection').style.borderColor = 'rgba(93,240,176,0.4)';
+    updateTierLabels();
+    showToast('HuggingFace token saved!');
+  } else {
+    try { localStorage.removeItem('mthf'); } catch(e) {}
+    document.getElementById('hfKeySection').style.borderColor = '';
+    updateTierLabels();
+    showToast('HF token removed');
+  }
+}
+
+function updateTierLabels() {
+  var t2 = document.getElementById('tier2');
+  var t3 = document.getElementById('tier3');
+  if (!t2 || !t3) return;
+  if (hfKey) {
+    t2.innerHTML = '<span class="tier-dot"></span>NLLB-200';
+    t3.innerHTML = '<span class="tier-dot"></span>Google';
+  } else {
+    t2.innerHTML = '<span class="tier-dot"></span>Google';
+    t3.innerHTML = '<span class="tier-dot"></span>Auto';
   }
 }
 
@@ -443,28 +497,44 @@ function doTranslate() {
 
 function engineLabel(e) {
   if (e === 'claude') return 'Claude AI';
+  if (e === 'nllb') return 'NLLB-200 (Meta AI)';
   if (e === 'google') return 'Google Translate';
   return 'Auto Detect';
 }
 
 function runTranslation(src, cb) {
-  setStatus('thinking', 'Detecting language & translating...');
+  setStatus('thinking', 'Translating...');
   setTier(1);
+  /* Tier 1: Claude AI (best quality) */
   callProxy(src, function(r) {
     if (r) {
       if (r.detected) { showDetectedLang(r.detected); }
       cb(r, 'claude'); return;
     }
-    setStatus('thinking', 'Trying Google Translate...');
-    setTier(2);
-    callGoogle(src, 'auto', function(r2) {
-      if (r2) { cb(r2, 'google'); return; }
-      setStatus('thinking', 'Trying fallback...');
-      setTier(3);
-      callGoogle(src, 'fr', function(r3) {
-        cb(r3, 'auto');
+    /* Tier 2: NLLB-200 (if HF key set - good Creole/Bhojpuri support) */
+    if (hfKey) {
+      setStatus('thinking', 'Trying NLLB-200 (HuggingFace)...');
+      setTier(2);
+      callNLLB(src, function(r2) {
+        if (r2) {
+          if (r2.detected) showDetectedLang(r2.detected);
+          cb(r2, 'nllb'); return;
+        }
+        tryGoogleFallback(src, cb);
       });
-    });
+    } else {
+      tryGoogleFallback(src, cb);
+    }
+  });
+}
+
+function tryGoogleFallback(src, cb) {
+  setStatus('thinking', 'Trying Google Translate...');
+  setTier(hfKey ? 3 : 2);
+  callGoogle(src, 'auto', function(r) {
+    if (r) { cb(r, 'google'); return; }
+    setTier(hfKey ? 3 : 3);
+    callGoogle(src, 'fr', function(r2) { cb(r2, 'auto'); });
   });
 }
 
@@ -524,6 +594,65 @@ function callClaudeDirect(src, cb) {
   var sysPrompt = (selLang === 'auto') ? AUTO_PROMPT : cfg.prompt; xhr.send(JSON.stringify({ model: 'claude-sonnet-4-20250514', max_tokens: 500, system: sysPrompt, messages: [{ role: 'user', content: src }] }));
 }
 
+function callNLLB(src, cb) {
+  if (!hfKey) { cb(null); return; }
+  /* NLLB-200: detect source lang then translate to Telugu */
+  /* mfe_Latn = Mauritian Creole, bho_Deva = Bhojpuri, tel_Telu = Telugu */
+  /* We try Creole first, then Bhojpuri if result looks wrong */
+  var srcLang = 'mfe_Latn'; /* default Creole; auto-pick based on chars */
+  /* Simple heuristic: if text has Devanagari chars, it's Bhojpuri */
+  var hasDevanagari = false;
+  for (var ci = 0; ci < src.length; ci++) {
+    var cp = src.charCodeAt(ci);
+    if (cp >= 0x0900 && cp <= 0x097F) { hasDevanagari = true; break; }
+  }
+  if (hasDevanagari) srcLang = 'bho_Deva';
+
+  var payload = JSON.stringify({
+    inputs: src,
+    parameters: {
+      src_lang: srcLang,
+      tgt_lang: 'tel_Telu',
+      max_length: 512
+    }
+  });
+
+  var xhr = new XMLHttpRequest();
+  xhr.open('POST', 'https://api-inference.huggingface.co/models/facebook/nllb-200-distilled-600M', true);
+  xhr.setRequestHeader('Content-Type', 'application/json');
+  xhr.setRequestHeader('Authorization', 'Bearer ' + hfKey);
+  xhr.timeout = 30000; /* Model may need to warm up */
+  xhr.onload = function() {
+    try {
+      var d = JSON.parse(xhr.responseText);
+      /* Response: [{"translation_text": "..."}] */
+      if (d && d[0] && d[0].translation_text) {
+        var translated = d[0].translation_text;
+        /* Validate: must contain Telugu Unicode chars */
+        var teluguChars = '';
+        for (var i = 0; i < translated.length; i++) {
+          var cp2 = translated.charCodeAt(i);
+          if (cp2 >= 0x0C00 && cp2 <= 0x0C7F) teluguChars += translated[i];
+        }
+        if (teluguChars.length > 0) {
+          cb({ telugu: translated, roman: '', confidence: 'medium', detected: hasDevanagari ? 'bhojpuri' : 'creole' });
+          return;
+        }
+      }
+      /* Model loading (503) - retry after delay */
+      if (xhr.status === 503) {
+        setStatus('thinking', 'NLLB model warming up, retrying...');
+        setTimeout(function() { callNLLB(src, cb); }, 8000);
+        return;
+      }
+      cb(null);
+    } catch(e) { cb(null); }
+  };
+  xhr.onerror = function() { cb(null); };
+  xhr.ontimeout = function() { cb(null); };
+  xhr.send(payload);
+}
+
 function callGoogle(src, langCode, cb) {
   var sl = langCode === 'auto' ? 'auto' : langCode;
   var url = 'https://translate.googleapis.com/translate_a/single?client=gtx&sl=' + sl + '&tl=te&dt=t&q=' + encodeURIComponent(src);
@@ -569,7 +698,7 @@ function showOutput(result, engine) {
   if (engine === 'google' || engine === 'auto') {
     var warn = document.createElement('div');
     warn.className = 'quality-warn';
-    warn.textContent = 'Google does not fully support Creole/Bhojpuri. Add an API key for accurate translation.';
+    warn.textContent = 'Google does not properly translate Creole/Bhojpuri. Add a Claude or HuggingFace API key for accurate results.';
     ob.appendChild(warn);
   }
   var tv = document.createElement('div');
