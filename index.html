@@ -28,12 +28,12 @@ h1{font-family:'Yatra One',cursive;font-size:clamp(28px,6vw,42px);background:lin
 .tier{display:flex;align-items:center;gap:5px;padding:5px 12px;border-radius:20px;font-size:11px;font-weight:600;letter-spacing:1px;text-transform:uppercase;border:1px solid var(--border);background:var(--surface);transition:all .3s;}
 .tier-dot{width:7px;height:7px;border-radius:50%;}
 .tier-sep{color:var(--muted);font-size:14px;}
-.tier-1 .tier-dot{background:var(--gold);}
+.tier-1 .tier-dot{background:#ff8a4c;}
 .tier-2 .tier-dot{background:var(--teal);}
-.tier-3 .tier-dot{background:var(--bhoj);}
-.tier-1.active-tier{border-color:var(--gold);background:rgba(232,184,75,0.12);box-shadow:0 0 12px rgba(232,184,75,0.2);}
+.tier-3 .tier-dot{background:var(--gold);}
+.tier-1.active-tier{border-color:#ff8a4c;background:rgba(255,138,76,0.12);box-shadow:0 0 12px rgba(255,138,76,0.2);}
 .tier-2.active-tier{border-color:var(--teal);background:rgba(46,196,182,0.12);box-shadow:0 0 12px rgba(46,196,182,0.2);}
-.tier-3.active-tier{border-color:var(--bhoj);background:rgba(176,126,247,0.12);box-shadow:0 0 12px rgba(176,126,247,0.2);}
+.tier-3.active-tier{border-color:var(--gold);background:rgba(232,184,75,0.12);box-shadow:0 0 12px rgba(232,184,75,0.2);}
 .key-section{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px;margin-bottom:16px;}
 .key-section label{font-size:12px;color:var(--muted);display:block;margin-bottom:8px;letter-spacing:1px;}
 .key-row{display:flex;gap:8px;}
@@ -181,18 +181,18 @@ footer{text-align:center;padding:24px 0 8px;font-size:11px;color:var(--muted);le
   </header>
 
   <div class="engine-indicator">
-    <div class="tier tier-1" id="tier1"><span class="tier-dot"></span>Claude AI</div>
+    <div class="tier tier-1" id="tier1"><span class="tier-dot"></span>NLLB-200</div>
     <span class="tier-sep">&rsaquo;</span>
-    <div class="tier tier-2" id="tier2"><span class="tier-dot"></span>NLLB-200 Free</div>
+    <div class="tier tier-2" id="tier2"><span class="tier-dot"></span>Google</div>
     <span class="tier-sep">&rsaquo;</span>
-    <div class="tier tier-3" id="tier3"><span class="tier-dot"></span>Google</div>
+    <div class="tier tier-3" id="tier3"><span class="tier-dot"></span>Claude AI</div>
   </div>
 
   <div class="api-needed-banner" id="apiBanner">
     <div class="api-needed-icon">&#9888;</div>
     <div class="api-needed-text">
       <div class="api-needed-title">API Key Required for Accurate Translation</div>
-      <div class="api-needed-sub">Google Translate cannot properly translate Creole or Bhojpuri into Telugu &mdash; it just phonetically writes the words. Claude AI understands the actual meaning. Get a free key at <a href="https://console.anthropic.com" target="_blank">console.anthropic.com</a> and paste it below.</div>
+      <div class="api-needed-sub">NLLB-200 (free) handles basic translation. For full meaning accuracy with Creole &amp; Bhojpuri, Claude AI gives the best results. Optional: get a key at <a href="https://console.anthropic.com" target="_blank">console.anthropic.com</a></div>
     </div>
   </div>
   <div class="key-section" id="keySection">
@@ -201,7 +201,7 @@ footer{text-align:center;padding:24px 0 8px;font-size:11px;color:var(--muted);le
       <input type="password" class="key-input" id="apiKeyInput" placeholder="sk-ant-... (leave blank for free)"/>
       <button class="btn-save-key" onclick="saveKey()">Save</button>
     </div>
-    <div class="key-hint">Best quality. Understands Creole &amp; Bhojpuri meaning accurately.</div>
+    <div class="key-hint">Optional. NLLB-200 + Google work without a key. Claude gives the most accurate meaning.</div>
   </div>
 
 
@@ -476,42 +476,40 @@ function doTranslate() {
 }
 
 function engineLabel(e) {
+  if (e === 'nllb') return 'NLLB-200 (Meta AI - Free)';
+  if (e === 'google') return 'Google Translate (Free)';
   if (e === 'claude') return 'Claude AI';
-  if (e === 'nllb') return 'NLLB-200 (Meta AI)';
-  if (e === 'google') return 'Google Translate';
-  return 'Auto Detect';
+  return 'Free Translation';
 }
 
 function runTranslation(src, cb) {
-  setStatus('thinking', 'Translating...');
+  /* ORDER: NLLB-200 free -> Google free -> Claude (best, needs key) */
+  setStatus('thinking', 'Translating with NLLB-200...');
   setTier(1);
-  /* Tier 1: Claude AI (best quality) */
-  callProxy(src, function(r) {
-    if (r) {
-      if (r.detected) { showDetectedLang(r.detected); }
-      cb(r, 'claude'); return;
+  /* Tier 1: NLLB-200 - native Creole+Bhojpuri support, completely free */
+  callNLLB(src, function(r1) {
+    if (r1) {
+      if (r1.detected) showDetectedLang(r1.detected);
+      cb(r1, 'nllb'); return;
     }
-    /* Tier 2: NLLB-200 by Meta AI - free, no key needed, native Creole+Bhojpuri */
-    setStatus('thinking', 'Trying NLLB-200 (Meta AI - free)...');
+    /* Tier 2: Google Translate - free fallback */
+    setStatus('thinking', 'Trying Google Translate...');
     setTier(2);
-    callNLLB(src, function(r2) {
-      if (r2) {
-        if (r2.detected) showDetectedLang(r2.detected);
-        cb(r2, 'nllb'); return;
-      }
-      tryGoogleFallback(src, cb);
+    callGoogle(src, 'auto', function(r2) {
+      if (r2) { cb(r2, 'google'); return; }
+      callGoogle(src, 'fr', function(r3) {
+        if (r3) { cb(r3, 'google'); return; }
+        /* Last resort: try Claude proxy if configured on server */
+        callProxy(src, function(rc) {
+          if (rc) { cb(rc, 'claude'); return; }
+          cb(null, null);
+        });
+      });
     });
   });
 }
 
-function tryGoogleFallback(src, cb) {
-  setStatus('thinking', 'Trying Google Translate...');
-  setTier(3);
-  callGoogle(src, 'auto', function(r) {
-    if (r) { cb(r, 'google'); return; }
-    callGoogle(src, 'fr', function(r2) { cb(r2, 'auto'); });
-  });
-}
+
 
 function showDetectedLang(detected) {
   var bar = document.getElementById('detectedLangBar');
@@ -677,7 +675,7 @@ function showOutput(result, engine) {
   if (engine === 'google' || engine === 'auto') {
     var warn = document.createElement('div');
     warn.className = 'quality-warn';
-    warn.textContent = 'Google does not properly translate Creole/Bhojpuri. Add a Claude or HuggingFace API key for accurate results.';
+    warn.textContent = 'For best accuracy, add a Claude API key above.';
     ob.appendChild(warn);
   }
   var tv = document.createElement('div');
