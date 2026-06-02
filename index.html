@@ -310,7 +310,6 @@ footer{text-align:center;padding:24px 0 8px;font-size:11px;color:var(--muted);le
 </div>
 
 <script>
-
 var selLang = 'auto';
 var isRec = false;
 var isSpeaking = false;
@@ -318,37 +317,27 @@ var recog = null;
 var curTelugu = '';
 var hist = [];
 var apiKey = '';
+var uploadedFile = null;
+var uploadedDataURL = null;
 
 var LANG = {
-  creole: { name: 'Kreol Morisyen', color: 'var(--creole)', label: 'KREOL MORISYEN', speechCode: 'fr-MU', googleCode: 'mfe', prompt: 'Translate this Mauritian Creole (Kreol Morisyen) text into Telugu script. Give only the Telugu translation meaning, not transliteration. Reply ONLY as JSON: {"telugu":"...","roman":"..."}' },
-  bhoj:   { name: 'Bhojpuri',       color: 'var(--bhoj)',   label: 'BHOJPURI',       speechCode: 'hi-IN', googleCode: 'bho', prompt: 'Translate this Mauritian Bhojpuri text into Telugu script. Give only the Telugu translation meaning, not transliteration. Reply ONLY as JSON: {"telugu":"...","roman":"..."}' }
+  creole: { name: 'Kreol Morisyen', color: 'var(--creole)', label: 'KREOL MORISYEN', speechCode: 'fr-MU', googleCode: 'mfe', prompt: 'Translate this Mauritian Creole (Kreol Morisyen) text into Telugu script. Give only the Telugu translation meaning, not transliteration. Reply ONLY as JSON with no markdown: {"telugu":"...","roman":"..."}' },
+  bhoj:   { name: 'Bhojpuri', color: 'var(--bhoj)', label: 'BHOJPURI', speechCode: 'hi-IN', googleCode: 'bho', prompt: 'Translate this Mauritian Bhojpuri text into Telugu script. Give only the Telugu translation meaning, not transliteration. Reply ONLY as JSON with no markdown: {"telugu":"...","roman":"..."}' }
 };
-var AUTO_PROMPT = 'Detect whether this text is Mauritian Creole (Kreol Morisyen) or Mauritian Bhojpuri, then translate it into Telugu script. Give only the Telugu translation meaning. Reply ONLY as JSON: {"detected":"creole or bhojpuri","telugu":"...","roman":"..."}';
-var AUTO_GOOGLE_PROMPT = 'auto';
-var selLangForSpeech = 'fr-MU';
+var AUTO_PROMPT = 'Detect whether this text is Mauritian Creole (Kreol Morisyen) or Mauritian Bhojpuri, then translate it into Telugu script. Give only the Telugu translation meaning. Reply ONLY as JSON with no markdown: {"detected":"creole or bhojpuri","telugu":"...","roman":"..."}';
 
 function init() {
-  /* Detect if running inside Claude.ai artifact viewer */
-  try {
-    if (window.self !== window.top) {
-      /* Running in iframe - show deployment notice */
-      var notice = document.createElement('div');
-      notice.style.cssText = 'position:fixed;top:0;left:0;right:0;z-index:9999;background:#e8b84b;color:#0a0800;padding:10px 16px;font-size:13px;font-weight:600;text-align:center;font-family:sans-serif;';
-      notice.textContent = 'Preview only - open mauri-tel.vercel.app on your phone for full functionality';
-      document.body.appendChild(notice);
-    }
-  } catch(e) {}
+  try { if (window.self !== window.top) { var nb = document.createElement('div'); nb.style.cssText = 'position:fixed;top:0;left:0;right:0;z-index:9999;background:#e8b84b;color:#0a0800;padding:10px 16px;font-size:12px;font-weight:600;text-align:center;font-family:sans-serif;'; nb.textContent = 'Open mauri-tel.vercel.app in Safari for full functionality'; document.body.appendChild(nb); } } catch(e) {}
   try { var s = localStorage.getItem('mth'); if (s) hist = JSON.parse(s); } catch(e) {}
   try { var k = localStorage.getItem('mtk'); if (k) { apiKey = k; document.getElementById('apiKeyInput').value = k; document.getElementById('keySection').style.borderColor = 'rgba(46,196,182,0.3)'; var b = document.getElementById('apiBanner'); if (b) b.style.display = 'none'; } } catch(e) {}
   renderHistory();
   setupSR();
-  /* Belt-and-suspenders: catch any input method including paste on iOS */
   var ta = document.getElementById('sourceText');
   if (ta) {
     ta.addEventListener('input', function() { updateCharCount(); });
     ta.addEventListener('paste', function() { setTimeout(function() { updateCharCount(); onUserType(); }, 50); });
-    ta.addEventListener('keyup', function() { updateCharCount(); });
   }
+}
 
 function saveKey() {
   var v = document.getElementById('apiKeyInput').value;
@@ -358,48 +347,47 @@ function saveKey() {
   if (v) {
     try { localStorage.setItem('mtk', v); } catch(e) {}
     document.getElementById('keySection').style.borderColor = 'rgba(46,196,182,0.4)';
-    var banner = document.getElementById('apiBanner');
-    if (banner) banner.style.display = 'none';
-    showToast('API Key saved - accurate translations enabled!');
+    var b = document.getElementById('apiBanner'); if (b) b.style.display = 'none';
+    showToast('API Key saved!');
   } else {
     try { localStorage.removeItem('mtk'); } catch(e) {}
     document.getElementById('keySection').style.borderColor = '';
-    var banner2 = document.getElementById('apiBanner');
-    if (banner2) banner2.style.display = 'flex';
-    showToast('Free mode - Google fallback (limited quality)');
+    var b2 = document.getElementById('apiBanner'); if (b2) b2.style.display = 'flex';
+    showToast('Free mode active');
+  }
+}
 
 function setTier(n) {
-  var ids = ['tier1','tier2','tier3'];
-  for (var i = 0; i < 3; i++) {
-    var el = document.getElementById(ids[i]);
-    el.className = 'tier tier-' + (i+1) + (n === (i+1) ? ' active-tier' : '');
+  for (var i = 1; i <= 3; i++) {
+    var el = document.getElementById('tier' + i);
+    if (el) el.className = 'tier tier-' + i + (n === i ? ' active-tier' : '');
+  }
+}
 
 function selectLang(lang) {
   selLang = lang;
-  var inputLabel = document.getElementById('inputLabel');
-  if (inputLabel) {
-    inputLabel.textContent = 'KREOL / BHOJPURI';
-    inputLabel.style.color = 'var(--teal)';
-  var srcText = document.getElementById('sourceText');
-  if (srcText) srcText.placeholder = 'Type or paste in Kreol Morisyen or Bhojpuri';
-  selLangForSpeech = 'fr-MU';
+  var lbl = document.getElementById('inputLabel');
+  if (lbl) { lbl.textContent = 'KREOL / BHOJPURI'; lbl.style.color = 'var(--teal)'; }
+  var ta = document.getElementById('sourceText');
+  if (ta) ta.placeholder = 'Type or paste in Kreol Morisyen or Bhojpuri';
+  setupSR();
+}
 
 function setStatus(type, msg) {
-  /* Status bar removed - use output engine status line instead */
   var es = document.getElementById('outputEngineStatus');
-  if (es && msg) {
-    es.textContent = msg;
-    es.className = 'output-engine-status visible';
+  if (es && msg) { es.textContent = msg; es.className = 'output-engine-status visible'; }
+}
 
 function onUserType() {
   var panel = document.getElementById('inputPanel');
-  if (panel) {
-    panel.className = 'panel panel-input-typing';
+  if (panel) panel.className = 'panel panel-input-typing';
+}
 
 function updateCharCount() {
   var el = document.getElementById('sourceText');
   var cc = document.getElementById('charCount');
   if (el && cc) cc.textContent = el.value.length;
+}
 
 function setupSR() {
   try {
@@ -408,110 +396,132 @@ function setupSR() {
     recog = new SRC();
     recog.continuous = false;
     recog.interimResults = true;
-    recog.lang = selLangForSpeech || 'fr-MU';
+    recog.lang = 'fr-MU';
     recog.onresult = function(e) {
       var fin = '', tmp = '';
       for (var i = e.resultIndex; i < e.results.length; i++) {
         if (e.results[i].isFinal) fin += e.results[i][0].transcript;
         else tmp += e.results[i][0].transcript;
-      document.getElementById('sourceText').value = fin || tmp;
+      }
+      var ta = document.getElementById('sourceText');
+      if (ta) ta.value = fin || tmp;
       updateCharCount();
+    };
     recog.onend = function() {
       isRec = false;
-      document.getElementById('micBtn').className = 'icon-btn';
-      document.getElementById('micBtn').textContent = 'MIC';
+      var mb = document.getElementById('micBtn');
+      if (mb) { mb.className = 'icon-btn'; mb.textContent = 'MIC'; }
       setStatus('', 'Voice captured');
-      if (document.getElementById('sourceText').value.trim()) doTranslate();
+      var ta = document.getElementById('sourceText');
+      if (ta && ta.value.trim()) doTranslate();
+    };
     recog.onerror = function() {
-      setStatus('error', 'Mic error');
+      isRec = false;
+      var mb = document.getElementById('micBtn');
+      if (mb) { mb.className = 'icon-btn'; mb.textContent = 'MIC'; }
+    };
   } catch(e) {}
+}
 
 function toggleRecording() {
   if (!recog) { showToast('Voice not supported'); return; }
   if (isRec) {
     recog.stop();
+  } else {
     isRec = true;
-    document.getElementById('micBtn').className = 'icon-btn recording';
-    document.getElementById('micBtn').textContent = 'STOP';
+    var mb = document.getElementById('micBtn');
+    if (mb) { mb.className = 'icon-btn recording'; mb.textContent = 'STOP'; }
     setStatus('rec', 'Recording...');
     recog.start();
+  }
+}
 
 function pasteClip() {
+  var ta = document.getElementById('sourceText');
   if (!navigator.clipboard) {
-    /* iOS fallback - focus textarea and let user paste manually */
-    if (el) { el.focus(); showToast('Tap and hold to paste'); }
+    if (ta) { ta.focus(); showToast('Tap and hold to paste'); }
     return;
+  }
   navigator.clipboard.readText().then(function(t) {
-    el.value = t;
-    onUserType();
-    el.focus();
-    showToast('Pasted - tap Translate');
+    if (ta) { ta.value = t; updateCharCount(); onUserType(); ta.focus(); }
+    showToast('Pasted');
   }, function() {
+    if (ta) { ta.focus(); showToast('Tap and hold to paste'); }
   });
+}
 
 function doTranslate() {
-  var el = document.getElementById('sourceText');
-  var src = el ? el.value : '';
+  var ta = document.getElementById('sourceText');
+  var src = ta ? ta.value : '';
   src = src ? src.trim() : '';
   if (!src) { showToast('Please type or paste text first'); return; }
   var btn = document.getElementById('translateBtn');
-  btn.disabled = true;
-  document.getElementById('btnText').textContent = 'Translating...';
-  setOutputText('', true);
+  var btnTxt = document.getElementById('btnText');
+  if (btn) btn.disabled = true;
+  if (btnTxt) btnTxt.textContent = 'Translating...';
+  var op = document.getElementById('outputPanel');
+  if (op) op.className = 'panel';
+  setOutputLoading();
   document.getElementById('transliteration').style.display = 'none';
-  /* Reset output panel highlight while loading */
-  var op2 = document.getElementById('outputPanel');
-  if (op2) op2.className = 'panel';
+  var db = document.getElementById('detectedLangBar');
+  if (db) db.style.display = 'none';
   runTranslation(src, function(result, engine) {
-    btn.disabled = false;
-    document.getElementById('btnText').textContent = 'Translate to Telugu';
-    if (!result) { setStatus('error', 'Translation failed. Try again.'); setOutputError(); setTier(0); return; }
+    if (btn) btn.disabled = false;
+    if (btnTxt) btnTxt.textContent = 'Translate to Telugu';
+    if (!result) {
+      setOutputError();
+      setTier(0);
+      return;
+    }
     curTelugu = result.telugu;
     showOutput(result, engine);
-    var qual = (engine === 'claude') ? ' (high quality)' : ' (limited Creole support - add API key for best results)';
-    setStatus('done', 'Translated via ' + engineLabel(engine) + qual);
+    if (result.detected) showDetectedLang(result.detected);
     saveHist(src, result.telugu, selLang, engine);
     setTimeout(function() { speakTelugu(); }, 400);
+  });
+}
 
 function engineLabel(e) {
   if (e === 'nllb') return 'NLLB-200 (Meta AI - Free)';
   if (e === 'google') return 'Google Translate (Free)';
   if (e === 'claude') return 'Claude AI';
   return 'Free Translation';
+}
 
 function runTranslation(src, cb) {
-  /* ORDER: NLLB-200 free -> Google free -> Claude (best, needs key) */
   setStatus('thinking', 'Translating with NLLB-200...');
   setTier(1);
-  /* Tier 1: NLLB-200 - native Creole+Bhojpuri support, completely free */
   callNLLB(src, function(r1) {
-    if (r1) {
-      if (r1.detected) showDetectedLang(r1.detected);
-      cb(r1, 'nllb'); return;
-    /* Tier 2: Google Translate - free fallback */
+    if (r1) { cb(r1, 'nllb'); return; }
     setStatus('thinking', 'Trying Google Translate...');
     setTier(2);
     callGoogle(src, 'auto', function(r2) {
       if (r2) { cb(r2, 'google'); return; }
       callGoogle(src, 'fr', function(r3) {
         if (r3) { cb(r3, 'google'); return; }
-        /* Last resort: try Claude proxy if configured on server */
+        setStatus('thinking', 'Trying Claude...');
+        setTier(3);
         callProxy(src, function(rc) {
-          if (rc) { cb(rc, 'claude'); return; }
-          cb(null, null);
-
-
+          cb(rc, 'claude');
+        });
+      });
+    });
+  });
+}
 
 function showDetectedLang(detected) {
   var bar = document.getElementById('detectedLangBar');
   var lbl = document.getElementById('detectedLangLabel');
   if (!bar || !lbl) return;
   bar.style.display = 'flex';
-  if (detected === 'creole' || detected.indexOf('creole') >= 0 || detected.indexOf('Creole') >= 0) {
+  if (detected && (detected.indexOf('creole') >= 0 || detected.indexOf('Creole') >= 0)) {
     lbl.textContent = 'Kreol Morisyen detected';
     lbl.style.color = 'var(--creole)';
+  } else {
     lbl.textContent = 'Bhojpuri detected';
     lbl.style.color = 'var(--bhoj)';
+  }
+}
 
 function callProxy(src, cb) {
   var xhr = new XMLHttpRequest();
@@ -519,117 +529,151 @@ function callProxy(src, cb) {
   xhr.setRequestHeader('Content-Type', 'application/json');
   xhr.timeout = 20000;
   xhr.onload = function() {
+    try {
       var d = JSON.parse(xhr.responseText);
-      if (d && d.telugu) { cb({ telugu: d.telugu, roman: d.roman || '', confidence: 'high' }); return; }
-      if (apiKey) { callClaudeDirect(src, cb); return; }
-      cb(null);
-    } catch(e) { if (apiKey) callClaudeDirect(src, cb); else cb(null); }
-  xhr.onerror = function() { if (apiKey) callClaudeDirect(src, cb); else cb(null); };
-  xhr.ontimeout = function() { if (apiKey) callClaudeDirect(src, cb); else cb(null); };
+      if (d && d.telugu) { cb({ telugu: d.telugu, roman: d.roman || '', detected: d.detected || '' }); return; }
+      callClaudeDirect(src, cb);
+    } catch(e) { callClaudeDirect(src, cb); }
+  };
+  xhr.onerror = function() { callClaudeDirect(src, cb); };
+  xhr.ontimeout = function() { callClaudeDirect(src, cb); };
   xhr.send(JSON.stringify({ text: src, lang: 'auto' }));
+}
 
 function callClaudeDirect(src, cb) {
-  var cfg = LANG[selLang];
+  if (!apiKey) { cb(null); return; }
+  var xhr = new XMLHttpRequest();
   xhr.open('POST', 'https://api.anthropic.com/v1/messages', true);
+  xhr.setRequestHeader('Content-Type', 'application/json');
   xhr.setRequestHeader('x-api-key', apiKey);
   xhr.setRequestHeader('anthropic-version', '2023-06-01');
   xhr.setRequestHeader('anthropic-dangerous-direct-browser-access', 'true');
   xhr.timeout = 15000;
+  xhr.onload = function() {
+    try {
+      var d = JSON.parse(xhr.responseText);
       var txt = d.content[0].text;
       var BT = String.fromCharCode(96);
       txt = txt.split(BT+BT+BT+'json').join('').split(BT+BT+BT).join('').trim();
-      var parsed = JSON.parse(txt);
-      cb(parsed);
+      cb(JSON.parse(txt));
     } catch(e) { cb(null); }
+  };
   xhr.onerror = function() { cb(null); };
   xhr.ontimeout = function() { cb(null); };
-  var sysPrompt = (selLang === 'auto') ? AUTO_PROMPT : cfg.prompt; xhr.send(JSON.stringify({ model: 'claude-sonnet-4-20250514', max_tokens: 500, system: sysPrompt, messages: [{ role: 'user', content: src }] }));
+  xhr.send(JSON.stringify({ model: 'claude-sonnet-4-20250514', max_tokens: 500, system: AUTO_PROMPT, messages: [{ role: 'user', content: src }] }));
+}
 
 function callNLLB(src, cb) {
-  /* NLLB-200: detect source lang then translate to Telugu */
-  /* mfe_Latn = Mauritian Creole, bho_Deva = Bhojpuri, tel_Telu = Telugu */
-  /* We try Creole first, then Bhojpuri if result looks wrong */
-  var srcLang = 'mfe_Latn'; /* default Creole; auto-pick based on chars */
-  /* Simple heuristic: if text has Devanagari chars, it's Bhojpuri */
   var hasDevanagari = false;
   for (var ci = 0; ci < src.length; ci++) {
     var cp = src.charCodeAt(ci);
     if (cp >= 0x0900 && cp <= 0x097F) { hasDevanagari = true; break; }
-  if (hasDevanagari) srcLang = 'bho_Deva';
-
-  var payload = JSON.stringify({
-    inputs: src,
-    parameters: {
-      src_lang: srcLang,
-      tgt_lang: 'tel_Telu',
-      max_length: 512
-
+  }
+  var srcLang = hasDevanagari ? 'bho_Deva' : 'mfe_Latn';
+  var xhr = new XMLHttpRequest();
   xhr.open('POST', 'https://api-inference.huggingface.co/models/facebook/nllb-200-distilled-600M', true);
-  xhr.timeout = 30000; /* Model may need to warm up */
-      /* Response: [{"translation_text": "..."}] */
-      if (d && d[0] && d[0].translation_text) {
-        var translated = d[0].translation_text;
-        /* Validate: must contain Telugu Unicode chars */
-        var teluguChars = '';
-        for (var i = 0; i < translated.length; i++) {
-          var cp2 = translated.charCodeAt(i);
-          if (cp2 >= 0x0C00 && cp2 <= 0x0C7F) teluguChars += translated[i];
-        if (teluguChars.length > 0) {
-          cb({ telugu: translated, roman: '', confidence: 'medium', detected: hasDevanagari ? 'bhojpuri' : 'creole' });
-      /* Model loading (503) - retry after delay */
+  xhr.setRequestHeader('Content-Type', 'application/json');
+  xhr.timeout = 30000;
+  xhr.onload = function() {
+    try {
       if (xhr.status === 503) {
-        setStatus('thinking', 'NLLB model warming up, retrying...');
         setTimeout(function() { callNLLB(src, cb); }, 8000);
-  xhr.send(payload);
+        return;
+      }
+      var d = JSON.parse(xhr.responseText);
+      if (d && d[0] && d[0].translation_text) {
+        var t = d[0].translation_text;
+        var hasT = false;
+        for (var i = 0; i < t.length; i++) {
+          var c = t.charCodeAt(i);
+          if (c >= 0x0C00 && c <= 0x0C7F) { hasT = true; break; }
+        }
+        if (hasT) { cb({ telugu: t, roman: '', detected: hasDevanagari ? 'bhojpuri' : 'creole' }); return; }
+      }
+      cb(null);
+    } catch(e) { cb(null); }
+  };
+  xhr.onerror = function() { cb(null); };
+  xhr.ontimeout = function() { cb(null); };
+  xhr.send(JSON.stringify({ inputs: src, parameters: { src_lang: srcLang, tgt_lang: 'tel_Telu', max_length: 512 } }));
+}
 
 function callGoogle(src, langCode, cb) {
-  var sl = langCode === 'auto' ? 'auto' : langCode;
-  var url = 'https://translate.googleapis.com/translate_a/single?client=gtx&sl=' + sl + '&tl=te&dt=t&q=' + encodeURIComponent(src);
+  var url = 'https://translate.googleapis.com/translate_a/single?client=gtx&sl=' + langCode + '&tl=te&dt=t&q=' + encodeURIComponent(src);
+  var xhr = new XMLHttpRequest();
   xhr.open('GET', url, true);
   xhr.timeout = 10000;
+  xhr.onload = function() {
+    try {
+      var d = JSON.parse(xhr.responseText);
       var result = '';
-      if (d && d[0]) { for (var i = 0; i < d[0].length; i++) { if (d[0][i] && d[0][i][0]) result += d[0][i][0]; } }
-      var teluguOnly = result.replace(/[\x00-\x7F]/g, '');
-      if (result && teluguOnly.length > 0) { cb({ telugu: result, roman: '', confidence: 'medium' }); }
-      else { cb(null); }
+      if (d && d[0]) {
+        for (var i = 0; i < d[0].length; i++) {
+          if (d[0][i] && d[0][i][0]) result += d[0][i][0];
+        }
+      }
+      var hasT = false;
+      for (var j = 0; j < result.length; j++) {
+        var c = result.charCodeAt(j);
+        if (c >= 0x0C00 && c <= 0x0C7F) { hasT = true; break; }
+      }
+      if (result && hasT) { cb({ telugu: result, roman: '', confidence: 'medium' }); } else { cb(null); }
+    } catch(e) { cb(null); }
+  };
+  xhr.onerror = function() { cb(null); };
+  xhr.ontimeout = function() { cb(null); };
   xhr.send();
+}
 
-function setOutputText(msg, isLoading) {
+function setOutputLoading() {
   var ob = document.getElementById('outputBody');
+  if (!ob) return;
   ob.innerHTML = '';
   var p = document.createElement('div');
   p.className = 'output-placeholder';
-  p.textContent = isLoading ? 'Translating...' : msg;
+  p.textContent = 'Translating...';
   ob.appendChild(p);
+}
 
 function setOutputError() {
-  setOutputText('Translation failed. Please try again.', false);
+  var ob = document.getElementById('outputBody');
+  if (!ob) return;
+  ob.innerHTML = '';
+  var p = document.createElement('div');
+  p.className = 'output-placeholder';
+  p.textContent = 'Translation failed. Please try again.';
+  ob.appendChild(p);
+  setStatus('error', 'Translation failed');
+}
 
 function showOutput(result, engine) {
-  /* Highlight output panel */
   var op = document.getElementById('outputPanel');
   if (op) op.className = 'panel panel-output-done';
-  /* Reset input panel to static glow (stop pulse) */
   var ip = document.getElementById('inputPanel');
   if (ip) ip.className = 'panel panel-input-typing';
+  var ob = document.getElementById('outputBody');
+  if (!ob) return;
+  ob.innerHTML = '';
   var tag = document.createElement('span');
-  tag.className = 'engine-tag engine-tag-' + (engine === 'auto' ? 'google' : engine);
+  tag.className = 'engine-tag engine-tag-' + (engine === 'claude' ? 'claude' : engine === 'nllb' ? 'nllb' : 'google');
   tag.textContent = engineLabel(engine);
   ob.appendChild(tag);
-  /* Show quality warning for Google fallback */
   if (engine === 'google' || engine === 'auto') {
     var warn = document.createElement('div');
     warn.className = 'quality-warn';
     warn.textContent = 'For best accuracy, add a Claude API key above.';
     ob.appendChild(warn);
+  }
   var tv = document.createElement('div');
   tv.className = 'telugu-text';
   tv.textContent = result.telugu;
   ob.appendChild(tv);
   if (result.roman) {
     var tr = document.getElementById('transliteration');
-    tr.style.display = 'block';
-    tr.textContent = 'Roman: ' + result.roman;
+    if (tr) { tr.style.display = 'block'; tr.textContent = 'Roman: ' + result.roman; }
+  }
+  setStatus('done', 'Translated via ' + engineLabel(engine));
+}
 
 function speakTelugu() {
   if (!curTelugu) return;
@@ -637,45 +681,81 @@ function speakTelugu() {
   if (isSpeaking) {
     window.speechSynthesis.cancel();
     isSpeaking = false;
-    document.getElementById('speakBtn').className = 'icon-btn';
+    var sb = document.getElementById('speakBtn');
+    if (sb) sb.className = 'icon-btn';
+    return;
+  }
+  window.speechSynthesis.cancel();
   var u = new SpeechSynthesisUtterance(curTelugu);
   var vs = window.speechSynthesis.getVoices();
   for (var i = 0; i < vs.length; i++) { if (vs[i].lang.indexOf('te') === 0) { u.voice = vs[i]; break; } }
   u.lang = 'te-IN'; u.rate = 0.85;
   isSpeaking = true;
-  document.getElementById('speakBtn').className = 'icon-btn speaking';
-  u.onend = function() { isSpeaking = false; document.getElementById('speakBtn').className = 'icon-btn'; setStatus('done', 'Done speaking'); };
+  var sb2 = document.getElementById('speakBtn');
+  if (sb2) sb2.className = 'icon-btn speaking';
+  u.onend = function() {
+    isSpeaking = false;
+    var sb3 = document.getElementById('speakBtn');
+    if (sb3) sb3.className = 'icon-btn';
+    setStatus('done', 'Done speaking');
+  };
   window.speechSynthesis.speak(u);
+}
 
 function copyTelugu() {
+  if (!curTelugu) return;
   if (!navigator.clipboard) { showToast('Copy not available'); return; }
   navigator.clipboard.writeText(curTelugu).then(function() { showToast('Copied!'); }, function() { showToast('Copy failed'); });
+}
 
 function clearAll() {
-  document.getElementById('sourceText').value = '';
+  var ta = document.getElementById('sourceText');
+  if (ta) ta.value = '';
+  updateCharCount();
   curTelugu = '';
-  setOutputText('', false);
-  document.getElementById('outputPlaceholder') && (document.getElementById('outputBody').innerHTML = '<div class="output-placeholder" id="outputPlaceholder">&#3077;&#3112;&#3137;&#3125;&#3134;&#3110;&#3074; &#3079;&#3093;&#3149;&#3093;&#3105; &#3093;&#3112;&#3135;&#3114;&#3135;&#3128;&#3149;&#3108;&#3137;&#3074;&#3110;&#3135;...</div>');
+  var ob = document.getElementById('outputBody');
+  if (ob) {
+    ob.innerHTML = '';
+    var p = document.createElement('div');
+    p.className = 'output-placeholder';
+    p.textContent = document.getElementById('outputPlaceholder') ? document.getElementById('outputPlaceholder').textContent : '...';
+    ob.appendChild(p);
+  }
+  var tr = document.getElementById('transliteration');
+  if (tr) tr.style.display = 'none';
   if (window.speechSynthesis) window.speechSynthesis.cancel();
-  setTier(0);
-  /* Reset panel borders */
+  isSpeaking = false;
+  var sb = document.getElementById('speakBtn');
+  if (sb) sb.className = 'icon-btn';
+  var ip = document.getElementById('inputPanel');
   if (ip) ip.className = 'panel panel-input-active';
+  var op = document.getElementById('outputPanel');
   if (op) op.className = 'panel';
+  var es = document.getElementById('outputEngineStatus');
   if (es) { es.textContent = ''; es.className = 'output-engine-status'; }
+  setTier(0);
+}
 
 function saveHist(source, telugu, lang, engine) {
   hist.unshift({ source: source, telugu: telugu, lang: lang, engine: engine, ts: new Date().toLocaleTimeString() });
   if (hist.length > 20) hist = hist.slice(0, 20);
   try { localStorage.setItem('mth', JSON.stringify(hist)); } catch(e) {}
+  renderHistory();
+}
 
 function deleteHist(idx) {
   hist.splice(idx, 1);
+  try { localStorage.setItem('mth', JSON.stringify(hist)); } catch(e) {}
+  renderHistory();
   showToast('Deleted');
+}
 
 function clearAllHistory() {
   hist = [];
   try { localStorage.removeItem('mth'); } catch(e) {}
+  renderHistory();
   showToast('History cleared');
+}
 
 function renderHistory() {
   var sec = document.getElementById('historySection');
@@ -689,88 +769,95 @@ function renderHistory() {
       var cfg = LANG[item.lang] || LANG.creole;
       var row = document.createElement('div');
       row.className = 'history-item';
-
-      var contentDiv = document.createElement('div');
-      contentDiv.className = 'history-item-content';
-      contentDiv.onclick = function() { loadHist(idx); };
-
-      var srcEl = document.createElement('div');
-      srcEl.className = 'history-source';
-      srcEl.textContent = item.source.length > 70 ? item.source.slice(0, 70) + '...' : item.source;
-      contentDiv.appendChild(srcEl);
-
-      var tgtEl = document.createElement('div');
-      tgtEl.className = 'history-target';
-      tgtEl.textContent = item.telugu.length > 55 ? item.telugu.slice(0, 55) + '...' : item.telugu;
-      contentDiv.appendChild(tgtEl);
-
-      var metaEl = document.createElement('div');
-      metaEl.className = 'history-meta';
-      metaEl.textContent = (item.ts || '') + '  ' + (item.engine || '');
-      contentDiv.appendChild(metaEl);
-
-      row.appendChild(contentDiv);
-
+      var cd = document.createElement('div');
+      cd.className = 'history-item-content';
+      cd.onclick = function() { loadHist(idx); };
+      var se = document.createElement('div');
+      se.className = 'history-source';
+      se.textContent = item.source.length > 70 ? item.source.slice(0, 70) + '...' : item.source;
+      cd.appendChild(se);
+      var te = document.createElement('div');
+      te.className = 'history-target';
+      te.textContent = item.telugu.length > 55 ? item.telugu.slice(0, 55) + '...' : item.telugu;
+      cd.appendChild(te);
+      var me = document.createElement('div');
+      me.className = 'history-meta';
+      me.textContent = (item.ts || '') + '  ' + (item.engine || '');
+      cd.appendChild(me);
+      row.appendChild(cd);
       var badge = document.createElement('span');
       badge.className = 'history-lang-badge';
       badge.style.cssText = 'background:' + cfg.color + '22;color:' + cfg.color + ';border:1px solid ' + cfg.color + '44;';
       badge.textContent = cfg.name;
       row.appendChild(badge);
-
-      var delBtn = document.createElement('button');
-      delBtn.className = 'history-del';
-      delBtn.textContent = 'X';
-      delBtn.title = 'Delete';
-      delBtn.onclick = function(e) { e.stopPropagation(); deleteHist(idx); };
-
-
-
-      row.appendChild(delBtn);
+      var db = document.createElement('button');
+      db.className = 'history-del';
+      db.textContent = 'X';
+      db.title = 'Delete';
+      db.onclick = function(e) { e.stopPropagation(); deleteHist(idx); };
+      row.appendChild(db);
       list.appendChild(row);
     })(hist[i], i);
+  }
+}
 
 function loadHist(idx) {
   var item = hist[idx];
-  selLang = item.lang;
-  selectLang(item.lang);
-  if (el) { el.value = item.source; }
+  var ta = document.getElementById('sourceText');
+  if (ta) ta.value = item.source;
+  updateCharCount();
+  onUserType();
   curTelugu = item.telugu;
-  tv.textContent = item.telugu;
+  var ob = document.getElementById('outputBody');
+  if (ob) {
+    ob.innerHTML = '';
+    var tv = document.createElement('div');
+    tv.className = 'telugu-text';
+    tv.textContent = item.telugu;
+    ob.appendChild(tv);
+  }
+  var tr = document.getElementById('transliteration');
+  if (tr) tr.style.display = 'none';
   setStatus('done', 'Loaded from history');
   window.scrollTo(0, 0);
+}
 
 function showToast(msg) {
   var t = document.getElementById('toast');
+  if (!t) return;
   t.textContent = msg;
   t.className = 'toast show';
   setTimeout(function() { t.className = 'toast'; }, 2800);
+}
 
-
-/* -- TAB SWITCHING -- */
 function switchTab(tab) {
-  document.getElementById('pane-text').style.display = tab === 'text' ? '' : 'none';
-  document.getElementById('pane-upload').style.display = tab === 'upload' ? '' : 'none';
-  document.getElementById('tab-text').className = 'tab-btn' + (tab === 'text' ? ' active' : '');
-  document.getElementById('tab-upload').className = 'tab-btn' + (tab === 'upload' ? ' active' : '');
+  var pt = document.getElementById('pane-text');
+  var pu = document.getElementById('pane-upload');
+  var tt = document.getElementById('tab-text');
+  var tu = document.getElementById('tab-upload');
+  if (pt) pt.style.display = tab === 'text' ? '' : 'none';
+  if (pu) pu.style.display = tab === 'upload' ? '' : 'none';
+  if (tt) tt.className = 'tab-btn' + (tab === 'text' ? ' active' : '');
+  if (tu) tu.className = 'tab-btn' + (tab === 'upload' ? ' active' : '');
   var notice = document.getElementById('uploadKeyNotice');
   if (notice) notice.style.display = (tab === 'upload' && !apiKey) ? 'block' : 'none';
+}
 
-/* -- FILE HANDLING -- */
-var uploadedFile = null;
-var uploadedDataURL = null;
-
-function processUploadedFile(file) {
+function handleFileSelect(input) {
+  var file = input.files && input.files[0];
+  if (!file) return;
   uploadedFile = file;
   var reader = new FileReader();
-  reader.onload = function(evt) {
-    uploadedDataURL = evt.target.result;
+  reader.onload = function(e) {
+    uploadedDataURL = e.target.result;
     var preview = document.getElementById('uploadPreview');
     var previewImg = document.getElementById('previewImg');
     var previewName = document.getElementById('previewName');
     var ocrBtn = document.getElementById('ocrBtn');
-    var ocrExtracted = document.getElementById('ocrExtracted');
-    if (ocrExtracted) ocrExtracted.style.display = 'none';
-    if (document.getElementById('ocrText')) document.getElementById('ocrText').textContent = '';
+    var ocrBox = document.getElementById('ocrExtracted');
+    var ocrText = document.getElementById('ocrText');
+    if (ocrBox) ocrBox.style.display = 'none';
+    if (ocrText) ocrText.textContent = '';
     if (file.type === 'application/pdf') {
       if (previewImg) previewImg.style.display = 'none';
       if (previewName) previewName.textContent = 'PDF: ' + file.name + ' (' + Math.round(file.size/1024) + ' KB)';
@@ -784,121 +871,140 @@ function processUploadedFile(file) {
   reader.readAsDataURL(file);
 }
 
-function handleFileSelect(input) {
-  var file = input.files && input.files[0];
-  if (!file) return;
-  uploadedFile = file;
-  var preview = document.getElementById('uploadPreview');
-  var previewImg = document.getElementById('previewImg');
-  var previewName = document.getElementById('previewName');
-  var ocrBtn = document.getElementById('ocrBtn');
-  var ocrExtracted = document.getElementById('ocrExtracted');
-
-  ocrExtracted.style.display = 'none';
-  document.getElementById('ocrText').textContent = '';
-
-  var reader = new FileReader();
-  reader.onload = function(e) {
-    uploadedDataURL = e.target.result;
-    if (file.type === 'application/pdf') {
-      previewImg.style.display = 'none';
-      previewName.textContent = 'PDF: ' + file.name + ' (' + Math.round(file.size/1024) + ' KB)';
-      previewImg.style.display = 'block';
-      previewImg.src = uploadedDataURL;
-      previewName.textContent = file.name + ' (' + Math.round(file.size/1024) + ' KB)';
-    preview.style.display = 'block';
-    ocrBtn.style.display = 'flex';
-    ocrBtn.disabled = false;
-  reader.readAsDataURL(file);
-
 function removeFile() {
   uploadedFile = null;
   uploadedDataURL = null;
-  document.getElementById('uploadPreview').style.display = 'none';
-  document.getElementById('ocrExtracted').style.display = 'none';
-  document.getElementById('ocrBtn').style.display = 'none';
-  document.getElementById('fileInput').value = '';
-  document.getElementById('previewImg').src = '';
-  document.getElementById('previewName').textContent = '';
+  var els = ['uploadPreview','ocrExtracted','ocrBtn'];
+  for (var i = 0; i < els.length; i++) {
+    var el = document.getElementById(els[i]);
+    if (el) el.style.display = 'none';
+  }
+  var fi = document.getElementById('fileInput');
+  if (fi) fi.value = '';
+  var pi = document.getElementById('previewImg');
+  if (pi) pi.src = '';
+  var pn = document.getElementById('previewName');
+  if (pn) pn.textContent = '';
+  var ot = document.getElementById('ocrText');
+  if (ot) ot.textContent = '';
+}
 
 function translateFile() {
   if (!uploadedFile || !uploadedDataURL) { showToast('Please select a file first'); return; }
   if (!apiKey) {
-    warn.textContent = 'Image & PDF translation requires a Claude API key. Google does not support image OCR for Creole/Bhojpuri. Please add your API key above.';
+    var ob = document.getElementById('outputBody');
+    if (ob) {
+      ob.innerHTML = '';
+      var w = document.createElement('div');
+      w.className = 'quality-warn';
+      w.textContent = 'Image & PDF translation requires a Claude API key. Add it above.';
+      ob.appendChild(w);
+    }
     setStatus('error', 'API key required for image/PDF translation');
     showToast('Add API key to translate images');
-
+    return;
+  }
   var btn = document.getElementById('ocrBtn');
-  document.getElementById('ocrBtnText').textContent = 'Extracting text...';
+  var btnTxt = document.getElementById('ocrBtnText');
+  if (btn) btn.disabled = true;
+  if (btnTxt) btnTxt.textContent = 'Extracting text...';
   setStatus('thinking', 'Reading file with Claude Vision...');
-
-  var imgPrompt = 'This image/document likely contains text in Mauritian Creole or Bhojpuri. Please: 1) Extract ALL the text visible in the image, 2) Detect the language (Kreol Morisyen or Bhojpuri), 3) Translate that text into Telugu script. Reply ONLY as JSON: {"extracted":"<all text found>","detected":"<language>","telugu":"<Telugu translation>","roman":"<romanized Telugu>"}';
-
+  setTier(1);
+  var imgPrompt = 'This image or document contains text in Mauritian Creole or Bhojpuri. Please: 1) Extract ALL the text visible, 2) Detect the language, 3) Translate into Telugu script. Reply ONLY as JSON with no markdown: {"extracted":"...","detected":"creole or bhojpuri","telugu":"...","roman":"..."}';
   if (uploadedFile.type === 'application/pdf') {
-    extractPDFAndTranslate(imgPrompt, btn);
-    sendImageToClaude(uploadedDataURL, uploadedFile.type, imgPrompt, btn);
+    sendPDFToClaude(imgPrompt, btn, btnTxt);
+  } else {
+    sendImageToClaude(uploadedDataURL, uploadedFile.type, imgPrompt, btn, btnTxt);
+  }
+}
 
-function sendImageToClaude(dataURL, mimeType, prompt, btn) {
+function sendImageToClaude(dataURL, mimeType, prompt, btn, btnTxt) {
   var base64 = dataURL.split(',')[1];
   var safeMime = mimeType || 'image/jpeg';
   if (safeMime === 'image/jpg') safeMime = 'image/jpeg';
-
-  var payload = {
-    model: 'claude-sonnet-4-20250514',
-    max_tokens: 1000,
-    messages: [{
-      role: 'user',
-      content: [
-        { type: 'image', source: { type: 'base64', media_type: safeMime, data: base64 } },
-        { type: 'text', text: prompt }
-      ]
-    }]
-
+  var payload = JSON.stringify({ model: 'claude-sonnet-4-20250514', max_tokens: 1000, messages: [{ role: 'user', content: [{ type: 'image', source: { type: 'base64', media_type: safeMime, data: base64 } }, { type: 'text', text: prompt }] }] });
+  var xhr = new XMLHttpRequest();
+  xhr.open('POST', 'https://api.anthropic.com/v1/messages', true);
+  xhr.setRequestHeader('Content-Type', 'application/json');
+  xhr.setRequestHeader('x-api-key', apiKey);
+  xhr.setRequestHeader('anthropic-version', '2023-06-01');
+  xhr.setRequestHeader('anthropic-dangerous-direct-browser-access', 'true');
   xhr.timeout = 30000;
-    document.getElementById('ocrBtnText').textContent = 'Extract & Translate';
-      if (!d.content || !d.content[0]) { throw new Error('No response'); }
-      showOCRResult(parsed);
-    } catch(e) {
-      setStatus('error', 'Could not read file. Try a clearer image.');
-      showToast('Extraction failed');
-  xhr.onerror = function() {
-    setStatus('error', 'Network error');
-  xhr.ontimeout = function() {
-    setStatus('error', 'Timeout - try a smaller file');
-  xhr.send(JSON.stringify(payload));
-
-function extractPDFAndTranslate(prompt, btn) {
-  /* Send PDF directly to Claude - no dynamic script loading needed */
-  sendPDFDocToClaude(prompt, btn);
+  xhr.onload = function() {
+    if (btn) btn.disabled = false;
+    if (btnTxt) btnTxt.textContent = 'Extract & Translate via Claude Vision';
+    try {
+      var d = JSON.parse(xhr.responseText);
+      var txt = d.content[0].text;
+      var BT = String.fromCharCode(96);
+      txt = txt.split(BT+BT+BT+'json').join('').split(BT+BT+BT).join('').trim();
+      showOCRResult(JSON.parse(txt));
+    } catch(e) { setStatus('error', 'Could not read file'); showToast('Extraction failed'); }
+  };
+  xhr.onerror = function() { if (btn) btn.disabled = false; if (btnTxt) btnTxt.textContent = 'Extract & Translate via Claude Vision'; setStatus('error', 'Network error'); };
+  xhr.ontimeout = function() { if (btn) btn.disabled = false; if (btnTxt) btnTxt.textContent = 'Extract & Translate via Claude Vision'; setStatus('error', 'Timeout'); };
+  xhr.send(payload);
 }
 
-
-function sendPDFDocToClaude(prompt, btn) {
-  /* Send PDF directly as document type to Claude */
-        { type: 'document', source: { type: 'base64', media_type: 'application/pdf', data: base64 } },
+function sendPDFToClaude(prompt, btn, btnTxt) {
+  var base64 = uploadedDataURL.split(',')[1];
+  var payload = JSON.stringify({ model: 'claude-sonnet-4-20250514', max_tokens: 1000, messages: [{ role: 'user', content: [{ type: 'document', source: { type: 'base64', media_type: 'application/pdf', data: base64 } }, { type: 'text', text: prompt }] }] });
+  var xhr = new XMLHttpRequest();
+  xhr.open('POST', 'https://api.anthropic.com/v1/messages', true);
+  xhr.setRequestHeader('Content-Type', 'application/json');
+  xhr.setRequestHeader('x-api-key', apiKey);
+  xhr.setRequestHeader('anthropic-version', '2023-06-01');
+  xhr.setRequestHeader('anthropic-dangerous-direct-browser-access', 'true');
+  xhr.timeout = 30000;
+  xhr.onload = function() {
+    if (btn) btn.disabled = false;
+    if (btnTxt) btnTxt.textContent = 'Extract & Translate via Claude Vision';
+    try {
+      var d = JSON.parse(xhr.responseText);
+      var txt = d.content[0].text;
+      var BT = String.fromCharCode(96);
+      txt = txt.split(BT+BT+BT+'json').join('').split(BT+BT+BT).join('').trim();
       showOCRResult(JSON.parse(txt));
     } catch(e) { setStatus('error', 'Could not read PDF'); showToast('PDF extraction failed'); }
-  xhr.onerror = function() { btn.disabled = false; document.getElementById('ocrBtnText').textContent = 'Extract & Translate'; setStatus('error', 'Network error'); };
-  xhr.ontimeout = function() { btn.disabled = false; document.getElementById('ocrBtnText').textContent = 'Extract & Translate'; setStatus('error', 'Timeout'); };
+  };
+  xhr.onerror = function() { if (btn) btn.disabled = false; setStatus('error', 'Network error'); };
+  xhr.ontimeout = function() { if (btn) btn.disabled = false; setStatus('error', 'Timeout'); };
+  xhr.send(payload);
+}
 
 function showOCRResult(parsed) {
   curTelugu = parsed.telugu || '';
-  /* Show extracted text */
   var ocrBox = document.getElementById('ocrExtracted');
   var ocrText = document.getElementById('ocrText');
-  if (parsed.extracted) {
+  if (parsed.extracted && ocrBox && ocrText) {
     ocrBox.style.display = 'block';
     ocrText.textContent = parsed.extracted;
-  /* Show Telugu output */
-  tag.className = 'engine-tag engine-tag-claude';
-  tag.textContent = 'Claude Vision';
-  tv.textContent = curTelugu;
+  }
+  var ob = document.getElementById('outputBody');
+  if (ob) {
+    ob.innerHTML = '';
+    var tag = document.createElement('span');
+    tag.className = 'engine-tag engine-tag-claude';
+    tag.textContent = 'Claude Vision';
+    ob.appendChild(tag);
+    var tv = document.createElement('div');
+    tv.className = 'telugu-text';
+    tv.textContent = curTelugu;
+    ob.appendChild(tv);
+  }
   if (parsed.roman) {
-    tr.textContent = 'Roman: ' + parsed.roman;
+    var tr = document.getElementById('transliteration');
+    if (tr) { tr.style.display = 'block'; tr.textContent = 'Roman: ' + parsed.roman; }
+  }
+  var op = document.getElementById('outputPanel');
+  if (op) op.className = 'panel panel-output-done';
   setStatus('done', 'File translated via Claude Vision');
+  setTier(1);
+  if (parsed.detected) showDetectedLang(parsed.detected);
   saveHist('[Image/PDF] ' + (parsed.extracted ? parsed.extracted.slice(0,40) : 'file'), curTelugu, selLang, 'claude');
+  setTimeout(function() { speakTelugu(); }, 400);
+}
 
-/* Drag and drop support */
 function initUploadDrag() {
   var panel = document.getElementById('uploadPanel');
   if (!panel) return;
@@ -907,15 +1013,22 @@ function initUploadDrag() {
   panel.addEventListener('drop', function(e) {
     e.preventDefault();
     panel.className = 'upload-panel';
-    var file = e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0];
-    if (file) {
-      processUploadedFile(file);
+    try {
+      var file = e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0];
+      if (file) {
+        var fakeInput = { files: [file] };
+        handleFileSelect(fakeInput);
+      }
+    } catch(err) {}
+  });
+}
 
 window.onload = function() { init(); initUploadDrag(); };
 if (window.speechSynthesis) {
   window.speechSynthesis.getVoices();
   window.speechSynthesis.onvoiceschanged = function() { window.speechSynthesis.getVoices(); };
-chSynthesis.onvoiceschanged = function() {  window.speechSynthesis.getVoices(); };
+}
+
 </script>
 </body>
 </html>
