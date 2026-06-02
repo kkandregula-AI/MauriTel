@@ -30,6 +30,7 @@ h1{font-family:'Yatra One',cursive;font-size:clamp(28px,6vw,42px);background:lin
 .badge-bhoj{background:rgba(176,126,247,0.12);color:var(--bhoj);border:1px solid rgba(176,126,247,0.25);}
 .badge-arrow{background:rgba(255,255,255,0.05);color:var(--muted);border:1px solid var(--border);}
 .badge-telugu{background:rgba(93,240,176,0.12);color:var(--telugu);border:1px solid rgba(93,240,176,0.25);}
+.badge-eng{background:rgba(232,184,75,0.12);color:var(--gold);border:1px solid rgba(232,184,75,0.25);}
 .engine-indicator{display:flex;align-items:center;gap:6px;justify-content:center;margin:0 0 20px;flex-wrap:wrap;}
 .tier{display:flex;align-items:center;gap:5px;padding:5px 12px;border-radius:20px;font-size:11px;font-weight:600;letter-spacing:1px;text-transform:uppercase;border:1px solid var(--border);background:var(--surface);transition:all .3s;}
 .tier-dot{width:7px;height:7px;border-radius:50%;}
@@ -182,6 +183,7 @@ footer{text-align:center;padding:24px 0 8px;font-size:11px;color:var(--muted);le
     <div class="lang-badges">
       <span class="badge badge-creole">Kreol Morisyen</span>
       <span class="badge badge-bhoj">Bhojpuri</span>
+      <span class="badge badge-eng">English</span>
       <span class="badge badge-arrow">&rarr;</span>
       <span class="badge badge-telugu">&#3108;&#3142;&#3122;&#3137;&#3095;&#3137;</span>
     </div>
@@ -219,8 +221,8 @@ footer{text-align:center;padding:24px 0 8px;font-size:11px;color:var(--muted);le
       <span class="ulc-dot dot-bhoj"></span>
     </div>
     <div class="ulc-text">
-      <div class="ulc-title">Kreol Morisyen &amp; Bhojpuri</div>
-      <div class="ulc-sub">Language auto-detected &mdash; type, speak or upload in either</div>
+      <div class="ulc-title">English / Kreol Morisyen / Bhojpuri</div>
+      <div class="ulc-sub">Language auto-detected &mdash; type, speak or upload in any</div>
     </div>
     <div class="ulc-badge">AUTO</div>
   </div>
@@ -243,13 +245,13 @@ footer{text-align:center;padding:24px 0 8px;font-size:11px;color:var(--muted);le
   <div id="pane-text">
     <div class="panel panel-input-active" id="inputPanel">
       <div class="panel-header">
-        <span class="panel-label" id="inputLabel" style="color:var(--teal)">KREOL / BHOJPURI</span>
+        <span class="panel-label" id="inputLabel" style="color:var(--teal)">ENGLISH / KREOL / BHOJPURI</span>
         <div class="panel-actions">
           <button class="icon-btn" id="micBtn" onclick="toggleRecording()">MIC</button>
           <button class="icon-btn" onclick="pasteClip()">PASTE</button>
         </div>
       </div>
-      <textarea id="sourceText" placeholder="Type or paste in Kreol Morisyen or Bhojpuri" oninput="updateCharCount(); onUserType();" maxlength="2000"></textarea>
+      <textarea id="sourceText" placeholder="Type in English, Kreol Morisyen or Bhojpuri" oninput="updateCharCount(); onUserType();" maxlength="2000"></textarea>
       <div class="char-count"><span id="charCount">0</span> / 2000</div>
     </div>
     <div class="translate-row">
@@ -330,7 +332,7 @@ var LANG = {
   creole: { name: 'Kreol Morisyen', color: 'var(--creole)', label: 'KREOL MORISYEN', speechCode: 'fr-MU', googleCode: 'mfe', prompt: 'Translate this Mauritian Creole (Kreol Morisyen) text into Telugu script. Give only the Telugu translation meaning, not transliteration. Reply ONLY as JSON with no markdown: {"telugu":"...","roman":"..."}' },
   bhoj:   { name: 'Bhojpuri', color: 'var(--bhoj)', label: 'BHOJPURI', speechCode: 'hi-IN', googleCode: 'bho', prompt: 'Translate this Mauritian Bhojpuri text into Telugu script. Give only the Telugu translation meaning, not transliteration. Reply ONLY as JSON with no markdown: {"telugu":"...","roman":"..."}' }
 };
-var AUTO_PROMPT = 'Detect whether this text is Mauritian Creole (Kreol Morisyen) or Mauritian Bhojpuri, then translate it into Telugu script. Give only the Telugu translation meaning. Reply ONLY as JSON with no markdown: {"detected":"creole or bhojpuri","telugu":"...","roman":"..."}';
+var AUTO_PROMPT = 'Detect whether this text is English, Mauritian Creole (Kreol Morisyen), or Mauritian Bhojpuri, then translate it into Telugu script. Give only the Telugu translation meaning. Reply ONLY as JSON with no markdown: {"detected":"english or creole or bhojpuri","telugu":"...","roman":""}';
 
 function init() {
   try { if (window.self !== window.top) { var nb = document.createElement('div'); nb.style.cssText = 'position:fixed;top:0;left:0;right:0;z-index:9999;background:#e8b84b;color:#0a0800;padding:10px 16px;font-size:12px;font-weight:600;text-align:center;font-family:sans-serif;'; nb.textContent = 'Open mauri-tel.vercel.app in Safari for full functionality'; document.body.appendChild(nb); } } catch(e) {}
@@ -520,10 +522,13 @@ function showDetectedLang(detected) {
   var lbl = document.getElementById('detectedLangLabel');
   if (!bar || !lbl) return;
   bar.style.display = 'flex';
-  if (detected && (detected.indexOf('creole') >= 0 || detected.indexOf('Creole') >= 0)) {
+  if (detected && (detected.indexOf('english') >= 0 || detected.indexOf('English') >= 0)) {
+    lbl.textContent = 'English detected';
+    lbl.style.color = 'var(--gold)';
+  } else if (detected && (detected.indexOf('creole') >= 0 || detected.indexOf('Creole') >= 0)) {
     lbl.textContent = 'Kreol Morisyen detected';
     lbl.style.color = 'var(--creole)';
-  } else {
+  } else if (detected && (detected.indexOf('bhojpuri') >= 0 || detected.indexOf('Bhojpuri') >= 0)) {
     lbl.textContent = 'Bhojpuri detected';
     lbl.style.color = 'var(--bhoj)';
   }
@@ -916,7 +921,7 @@ function translateFile() {
   if (btnTxt) btnTxt.textContent = 'Extracting text...';
   setStatus('thinking', 'Reading file with Claude Vision...');
   setTier(1);
-  var imgPrompt = 'This image or document contains text in Mauritian Creole or Bhojpuri. Please: 1) Extract ALL the text visible, 2) Detect the language, 3) Translate into Telugu script. Reply ONLY as JSON with no markdown: {"extracted":"...","detected":"creole or bhojpuri","telugu":"...","roman":"..."}';
+  var imgPrompt = 'This image or document may contain text in English, Mauritian Creole or Bhojpuri. Please: 1) Extract ALL the text visible, 2) Detect the language, 3) Translate into Telugu script. Reply ONLY as JSON with no markdown: {"extracted":"...","detected":"creole or bhojpuri","telugu":"...","roman":"..."}';
   if (uploadedFile.type === 'application/pdf') {
     sendPDFToClaude(imgPrompt, btn, btnTxt);
   } else {
