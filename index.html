@@ -305,7 +305,12 @@ footer{text-align:center;padding:24px 0 8px;font-size:11px;color:var(--muted);le
 
   <footer>
     MauriTel &middot; Mauritius &rarr; Telugu &middot; 3-Tier Engine<br/>
-    Designed &amp; Architected by Krishnamurthy Kandregula &middo
+    Designed &amp; Architected by Krishnamurthy Kandregula &middot; Made by Claude
+  </footer>
+</div>
+
+<script>
+
 var selLang = 'auto';
 var isRec = false;
 var isSpeaking = false;
@@ -323,11 +328,27 @@ var AUTO_GOOGLE_PROMPT = 'auto';
 var selLangForSpeech = 'fr-MU';
 
 function init() {
+  /* Detect if running inside Claude.ai artifact viewer */
+  try {
+    if (window.self !== window.top) {
+      /* Running in iframe - show deployment notice */
+      var notice = document.createElement('div');
+      notice.style.cssText = 'position:fixed;top:0;left:0;right:0;z-index:9999;background:#e8b84b;color:#0a0800;padding:10px 16px;font-size:13px;font-weight:600;text-align:center;font-family:sans-serif;';
+      notice.textContent = 'Preview only - open mauri-tel.vercel.app on your phone for full functionality';
+      document.body.appendChild(notice);
+    }
+  } catch(e) {}
   try { var s = localStorage.getItem('mth'); if (s) hist = JSON.parse(s); } catch(e) {}
   try { var k = localStorage.getItem('mtk'); if (k) { apiKey = k; document.getElementById('apiKeyInput').value = k; document.getElementById('keySection').style.borderColor = 'rgba(46,196,182,0.3)'; var b = document.getElementById('apiBanner'); if (b) b.style.display = 'none'; } } catch(e) {}
   renderHistory();
   setupSR();
-}
+  /* Belt-and-suspenders: catch any input method including paste on iOS */
+  var ta = document.getElementById('sourceText');
+  if (ta) {
+    ta.addEventListener('input', function() { updateCharCount(); });
+    ta.addEventListener('paste', function() { setTimeout(function() { updateCharCount(); onUserType(); }, 50); });
+    ta.addEventListener('keyup', function() { updateCharCount(); });
+  }
 
 function saveKey() {
   var v = document.getElementById('apiKeyInput').value;
@@ -346,16 +367,12 @@ function saveKey() {
     var banner2 = document.getElementById('apiBanner');
     if (banner2) banner2.style.display = 'flex';
     showToast('Free mode - Google fallback (limited quality)');
-  }
-}
 
 function setTier(n) {
   var ids = ['tier1','tier2','tier3'];
   for (var i = 0; i < 3; i++) {
     var el = document.getElementById(ids[i]);
     el.className = 'tier tier-' + (i+1) + (n === (i+1) ? ' active-tier' : '');
-  }
-}
 
 function selectLang(lang) {
   selLang = lang;
@@ -363,12 +380,9 @@ function selectLang(lang) {
   if (inputLabel) {
     inputLabel.textContent = 'KREOL / BHOJPURI';
     inputLabel.style.color = 'var(--teal)';
-  }
   var srcText = document.getElementById('sourceText');
   if (srcText) srcText.placeholder = 'Type or paste in Kreol Morisyen or Bhojpuri';
   selLangForSpeech = 'fr-MU';
-  setupSR();
-}
 
 function setStatus(type, msg) {
   /* Status bar removed - use output engine status line instead */
@@ -376,19 +390,16 @@ function setStatus(type, msg) {
   if (es && msg) {
     es.textContent = msg;
     es.className = 'output-engine-status visible';
-  }
-}
 
 function onUserType() {
   var panel = document.getElementById('inputPanel');
   if (panel) {
     panel.className = 'panel panel-input-typing';
-  }
-}
 
 function updateCharCount() {
-  document.getElementById('charCount').textContent = document.getElementById('sourceText').value.length;
-}
+  var el = document.getElementById('sourceText');
+  var cc = document.getElementById('charCount');
+  if (el && cc) cc.textContent = el.value.length;
 
 function setupSR() {
   try {
@@ -403,52 +414,45 @@ function setupSR() {
       for (var i = e.resultIndex; i < e.results.length; i++) {
         if (e.results[i].isFinal) fin += e.results[i][0].transcript;
         else tmp += e.results[i][0].transcript;
-      }
       document.getElementById('sourceText').value = fin || tmp;
       updateCharCount();
-    };
     recog.onend = function() {
       isRec = false;
       document.getElementById('micBtn').className = 'icon-btn';
       document.getElementById('micBtn').textContent = 'MIC';
       setStatus('', 'Voice captured');
       if (document.getElementById('sourceText').value.trim()) doTranslate();
-    };
     recog.onerror = function() {
-      isRec = false;
-      document.getElementById('micBtn').className = 'icon-btn';
-      document.getElementById('micBtn').textContent = 'MIC';
       setStatus('error', 'Mic error');
-    };
   } catch(e) {}
-}
 
 function toggleRecording() {
   if (!recog) { showToast('Voice not supported'); return; }
   if (isRec) {
     recog.stop();
-  } else {
     isRec = true;
     document.getElementById('micBtn').className = 'icon-btn recording';
     document.getElementById('micBtn').textContent = 'STOP';
     setStatus('rec', 'Recording...');
     recog.start();
-  }
-}
 
 function pasteClip() {
-  if (!navigator.clipboard) { showToast('Clipboard not available'); return; }
+  if (!navigator.clipboard) {
+    /* iOS fallback - focus textarea and let user paste manually */
+    if (el) { el.focus(); showToast('Tap and hold to paste'); }
+    return;
   navigator.clipboard.readText().then(function(t) {
-    document.getElementById('sourceText').value = t;
-    updateCharCount();
-    showToast('Pasted');
-  }, function() { showToast('Clipboard access denied'); });
-}
+    el.value = t;
+    onUserType();
+    el.focus();
+    showToast('Pasted - tap Translate');
+  }, function() {
+  });
 
 function doTranslate() {
-  var src = document.getElementById('sourceText').value;
+  var src = el ? el.value : '';
   src = src ? src.trim() : '';
-  if (!src) { showToast('Please enter text to translate'); return; }
+  if (!src) { showToast('Please type or paste text first'); return; }
   var btn = document.getElementById('translateBtn');
   btn.disabled = true;
   document.getElementById('btnText').textContent = 'Translating...';
@@ -467,15 +471,12 @@ function doTranslate() {
     setStatus('done', 'Translated via ' + engineLabel(engine) + qual);
     saveHist(src, result.telugu, selLang, engine);
     setTimeout(function() { speakTelugu(); }, 400);
-  });
-}
 
 function engineLabel(e) {
   if (e === 'nllb') return 'NLLB-200 (Meta AI - Free)';
   if (e === 'google') return 'Google Translate (Free)';
   if (e === 'claude') return 'Claude AI';
   return 'Free Translation';
-}
 
 function runTranslation(src, cb) {
   /* ORDER: NLLB-200 free -> Google free -> Claude (best, needs key) */
@@ -486,7 +487,6 @@ function runTranslation(src, cb) {
     if (r1) {
       if (r1.detected) showDetectedLang(r1.detected);
       cb(r1, 'nllb'); return;
-    }
     /* Tier 2: Google Translate - free fallback */
     setStatus('thinking', 'Trying Google Translate...');
     setTier(2);
@@ -498,11 +498,6 @@ function runTranslation(src, cb) {
         callProxy(src, function(rc) {
           if (rc) { cb(rc, 'claude'); return; }
           cb(null, null);
-        });
-      });
-    });
-  });
-}
 
 
 
@@ -514,11 +509,8 @@ function showDetectedLang(detected) {
   if (detected === 'creole' || detected.indexOf('creole') >= 0 || detected.indexOf('Creole') >= 0) {
     lbl.textContent = 'Kreol Morisyen detected';
     lbl.style.color = 'var(--creole)';
-  } else {
     lbl.textContent = 'Bhojpuri detected';
     lbl.style.color = 'var(--bhoj)';
-  }
-}
 
 function callProxy(src, cb) {
   var xhr = new XMLHttpRequest();
@@ -526,41 +518,31 @@ function callProxy(src, cb) {
   xhr.setRequestHeader('Content-Type', 'application/json');
   xhr.timeout = 20000;
   xhr.onload = function() {
-    try {
       var d = JSON.parse(xhr.responseText);
       if (d && d.telugu) { cb({ telugu: d.telugu, roman: d.roman || '', confidence: 'high' }); return; }
       if (apiKey) { callClaudeDirect(src, cb); return; }
       cb(null);
     } catch(e) { if (apiKey) callClaudeDirect(src, cb); else cb(null); }
-  };
   xhr.onerror = function() { if (apiKey) callClaudeDirect(src, cb); else cb(null); };
   xhr.ontimeout = function() { if (apiKey) callClaudeDirect(src, cb); else cb(null); };
   xhr.send(JSON.stringify({ text: src, lang: 'auto' }));
-}
 
 function callClaudeDirect(src, cb) {
   var cfg = LANG[selLang];
-  var xhr = new XMLHttpRequest();
   xhr.open('POST', 'https://api.anthropic.com/v1/messages', true);
-  xhr.setRequestHeader('Content-Type', 'application/json');
   xhr.setRequestHeader('x-api-key', apiKey);
   xhr.setRequestHeader('anthropic-version', '2023-06-01');
   xhr.setRequestHeader('anthropic-dangerous-direct-browser-access', 'true');
   xhr.timeout = 15000;
-  xhr.onload = function() {
-    try {
-      var d = JSON.parse(xhr.responseText);
       var txt = d.content[0].text;
       var BT = String.fromCharCode(96);
       txt = txt.split(BT+BT+BT+'json').join('').split(BT+BT+BT).join('').trim();
       var parsed = JSON.parse(txt);
       cb(parsed);
     } catch(e) { cb(null); }
-  };
   xhr.onerror = function() { cb(null); };
   xhr.ontimeout = function() { cb(null); };
   var sysPrompt = (selLang === 'auto') ? AUTO_PROMPT : cfg.prompt; xhr.send(JSON.stringify({ model: 'claude-sonnet-4-20250514', max_tokens: 500, system: sysPrompt, messages: [{ role: 'user', content: src }] }));
-}
 
 function callNLLB(src, cb) {
   /* NLLB-200: detect source lang then translate to Telugu */
@@ -572,7 +554,6 @@ function callNLLB(src, cb) {
   for (var ci = 0; ci < src.length; ci++) {
     var cp = src.charCodeAt(ci);
     if (cp >= 0x0900 && cp <= 0x097F) { hasDevanagari = true; break; }
-  }
   if (hasDevanagari) srcLang = 'bho_Deva';
 
   var payload = JSON.stringify({
@@ -581,16 +562,9 @@ function callNLLB(src, cb) {
       src_lang: srcLang,
       tgt_lang: 'tel_Telu',
       max_length: 512
-    }
-  });
 
-  var xhr = new XMLHttpRequest();
   xhr.open('POST', 'https://api-inference.huggingface.co/models/facebook/nllb-200-distilled-600M', true);
-  xhr.setRequestHeader('Content-Type', 'application/json');
   xhr.timeout = 30000; /* Model may need to warm up */
-  xhr.onload = function() {
-    try {
-      var d = JSON.parse(xhr.responseText);
       /* Response: [{"translation_text": "..."}] */
       if (d && d[0] && d[0].translation_text) {
         var translated = d[0].translation_text;
@@ -599,46 +573,25 @@ function callNLLB(src, cb) {
         for (var i = 0; i < translated.length; i++) {
           var cp2 = translated.charCodeAt(i);
           if (cp2 >= 0x0C00 && cp2 <= 0x0C7F) teluguChars += translated[i];
-        }
         if (teluguChars.length > 0) {
           cb({ telugu: translated, roman: '', confidence: 'medium', detected: hasDevanagari ? 'bhojpuri' : 'creole' });
-          return;
-        }
-      }
       /* Model loading (503) - retry after delay */
       if (xhr.status === 503) {
         setStatus('thinking', 'NLLB model warming up, retrying...');
         setTimeout(function() { callNLLB(src, cb); }, 8000);
-        return;
-      }
-      cb(null);
-    } catch(e) { cb(null); }
-  };
-  xhr.onerror = function() { cb(null); };
-  xhr.ontimeout = function() { cb(null); };
   xhr.send(payload);
-}
 
 function callGoogle(src, langCode, cb) {
   var sl = langCode === 'auto' ? 'auto' : langCode;
   var url = 'https://translate.googleapis.com/translate_a/single?client=gtx&sl=' + sl + '&tl=te&dt=t&q=' + encodeURIComponent(src);
-  var xhr = new XMLHttpRequest();
   xhr.open('GET', url, true);
   xhr.timeout = 10000;
-  xhr.onload = function() {
-    try {
-      var d = JSON.parse(xhr.responseText);
       var result = '';
       if (d && d[0]) { for (var i = 0; i < d[0].length; i++) { if (d[0][i] && d[0][i][0]) result += d[0][i][0]; } }
       var teluguOnly = result.replace(/[\x00-\x7F]/g, '');
       if (result && teluguOnly.length > 0) { cb({ telugu: result, roman: '', confidence: 'medium' }); }
       else { cb(null); }
-    } catch(e) { cb(null); }
-  };
-  xhr.onerror = function() { cb(null); };
-  xhr.ontimeout = function() { cb(null); };
   xhr.send();
-}
 
 function setOutputText(msg, isLoading) {
   var ob = document.getElementById('outputBody');
@@ -647,11 +600,9 @@ function setOutputText(msg, isLoading) {
   p.className = 'output-placeholder';
   p.textContent = isLoading ? 'Translating...' : msg;
   ob.appendChild(p);
-}
 
 function setOutputError() {
   setOutputText('Translation failed. Please try again.', false);
-}
 
 function showOutput(result, engine) {
   /* Highlight output panel */
@@ -660,8 +611,6 @@ function showOutput(result, engine) {
   /* Reset input panel to static glow (stop pulse) */
   var ip = document.getElementById('inputPanel');
   if (ip) ip.className = 'panel panel-input-typing';
-  var ob = document.getElementById('outputBody');
-  ob.innerHTML = '';
   var tag = document.createElement('span');
   tag.className = 'engine-tag engine-tag-' + (engine === 'auto' ? 'google' : engine);
   tag.textContent = engineLabel(engine);
@@ -672,7 +621,6 @@ function showOutput(result, engine) {
     warn.className = 'quality-warn';
     warn.textContent = 'For best accuracy, add a Claude API key above.';
     ob.appendChild(warn);
-  }
   var tv = document.createElement('div');
   tv.className = 'telugu-text';
   tv.textContent = result.telugu;
@@ -681,8 +629,6 @@ function showOutput(result, engine) {
     var tr = document.getElementById('transliteration');
     tr.style.display = 'block';
     tr.textContent = 'Roman: ' + result.roman;
-  }
-}
 
 function speakTelugu() {
   if (!curTelugu) return;
@@ -691,9 +637,6 @@ function speakTelugu() {
     window.speechSynthesis.cancel();
     isSpeaking = false;
     document.getElementById('speakBtn').className = 'icon-btn';
-    return;
-  }
-  window.speechSynthesis.cancel();
   var u = new SpeechSynthesisUtterance(curTelugu);
   var vs = window.speechSynthesis.getVoices();
   for (var i = 0; i < vs.length; i++) { if (vs[i].lang.indexOf('te') === 0) { u.voice = vs[i]; break; } }
@@ -702,54 +645,36 @@ function speakTelugu() {
   document.getElementById('speakBtn').className = 'icon-btn speaking';
   u.onend = function() { isSpeaking = false; document.getElementById('speakBtn').className = 'icon-btn'; setStatus('done', 'Done speaking'); };
   window.speechSynthesis.speak(u);
-}
 
 function copyTelugu() {
-  if (!curTelugu) return;
   if (!navigator.clipboard) { showToast('Copy not available'); return; }
   navigator.clipboard.writeText(curTelugu).then(function() { showToast('Copied!'); }, function() { showToast('Copy failed'); });
-}
 
 function clearAll() {
   document.getElementById('sourceText').value = '';
-  updateCharCount();
   curTelugu = '';
   setOutputText('', false);
   document.getElementById('outputPlaceholder') && (document.getElementById('outputBody').innerHTML = '<div class="output-placeholder" id="outputPlaceholder">&#3077;&#3112;&#3137;&#3125;&#3134;&#3110;&#3074; &#3079;&#3093;&#3149;&#3093;&#3105; &#3093;&#3112;&#3135;&#3114;&#3135;&#3128;&#3149;&#3108;&#3137;&#3074;&#3110;&#3135;...</div>');
-  document.getElementById('transliteration').style.display = 'none';
   if (window.speechSynthesis) window.speechSynthesis.cancel();
-  isSpeaking = false;
-  document.getElementById('speakBtn').className = 'icon-btn';
   setTier(0);
   /* Reset panel borders */
-  var ip = document.getElementById('inputPanel');
   if (ip) ip.className = 'panel panel-input-active';
-  var op = document.getElementById('outputPanel');
   if (op) op.className = 'panel';
-  var es = document.getElementById('outputEngineStatus');
   if (es) { es.textContent = ''; es.className = 'output-engine-status'; }
-}
 
 function saveHist(source, telugu, lang, engine) {
   hist.unshift({ source: source, telugu: telugu, lang: lang, engine: engine, ts: new Date().toLocaleTimeString() });
   if (hist.length > 20) hist = hist.slice(0, 20);
   try { localStorage.setItem('mth', JSON.stringify(hist)); } catch(e) {}
-  renderHistory();
-}
 
 function deleteHist(idx) {
   hist.splice(idx, 1);
-  try { localStorage.setItem('mth', JSON.stringify(hist)); } catch(e) {}
-  renderHistory();
   showToast('Deleted');
-}
 
 function clearAllHistory() {
   hist = [];
   try { localStorage.removeItem('mth'); } catch(e) {}
-  renderHistory();
   showToast('History cleared');
-}
 
 function renderHistory() {
   var sec = document.getElementById('historySection');
@@ -802,33 +727,22 @@ function renderHistory() {
       row.appendChild(delBtn);
       list.appendChild(row);
     })(hist[i], i);
-  }
-}
 
 function loadHist(idx) {
   var item = hist[idx];
   selLang = item.lang;
   selectLang(item.lang);
-  document.getElementById('sourceText').value = item.source;
-  updateCharCount();
+  if (el) { el.value = item.source; }
   curTelugu = item.telugu;
-  var ob = document.getElementById('outputBody');
-  ob.innerHTML = '';
-  var tv = document.createElement('div');
-  tv.className = 'telugu-text';
   tv.textContent = item.telugu;
-  ob.appendChild(tv);
-  document.getElementById('transliteration').style.display = 'none';
   setStatus('done', 'Loaded from history');
   window.scrollTo(0, 0);
-}
 
 function showToast(msg) {
   var t = document.getElementById('toast');
   t.textContent = msg;
   t.className = 'toast show';
   setTimeout(function() { t.className = 'toast'; }, 2800);
-}
 
 
 /* -- TAB SWITCHING -- */
@@ -839,11 +753,35 @@ function switchTab(tab) {
   document.getElementById('tab-upload').className = 'tab-btn' + (tab === 'upload' ? ' active' : '');
   var notice = document.getElementById('uploadKeyNotice');
   if (notice) notice.style.display = (tab === 'upload' && !apiKey) ? 'block' : 'none';
-}
 
 /* -- FILE HANDLING -- */
 var uploadedFile = null;
 var uploadedDataURL = null;
+
+function processUploadedFile(file) {
+  uploadedFile = file;
+  var reader = new FileReader();
+  reader.onload = function(evt) {
+    uploadedDataURL = evt.target.result;
+    var preview = document.getElementById('uploadPreview');
+    var previewImg = document.getElementById('previewImg');
+    var previewName = document.getElementById('previewName');
+    var ocrBtn = document.getElementById('ocrBtn');
+    var ocrExtracted = document.getElementById('ocrExtracted');
+    if (ocrExtracted) ocrExtracted.style.display = 'none';
+    if (document.getElementById('ocrText')) document.getElementById('ocrText').textContent = '';
+    if (file.type === 'application/pdf') {
+      if (previewImg) previewImg.style.display = 'none';
+      if (previewName) previewName.textContent = 'PDF: ' + file.name + ' (' + Math.round(file.size/1024) + ' KB)';
+    } else {
+      if (previewImg) { previewImg.style.display = 'block'; previewImg.src = uploadedDataURL; }
+      if (previewName) previewName.textContent = file.name + ' (' + Math.round(file.size/1024) + ' KB)';
+    }
+    if (preview) preview.style.display = 'block';
+    if (ocrBtn) { ocrBtn.style.display = 'flex'; ocrBtn.disabled = false; }
+  };
+  reader.readAsDataURL(file);
+}
 
 function handleFileSelect(input) {
   var file = input.files && input.files[0];
@@ -864,17 +802,13 @@ function handleFileSelect(input) {
     if (file.type === 'application/pdf') {
       previewImg.style.display = 'none';
       previewName.textContent = 'PDF: ' + file.name + ' (' + Math.round(file.size/1024) + ' KB)';
-    } else {
       previewImg.style.display = 'block';
       previewImg.src = uploadedDataURL;
       previewName.textContent = file.name + ' (' + Math.round(file.size/1024) + ' KB)';
-    }
     preview.style.display = 'block';
     ocrBtn.style.display = 'flex';
     ocrBtn.disabled = false;
-  };
   reader.readAsDataURL(file);
-}
 
 function removeFile() {
   uploadedFile = null;
@@ -885,38 +819,23 @@ function removeFile() {
   document.getElementById('fileInput').value = '';
   document.getElementById('previewImg').src = '';
   document.getElementById('previewName').textContent = '';
-  document.getElementById('ocrText').textContent = '';
-}
 
 function translateFile() {
   if (!uploadedFile || !uploadedDataURL) { showToast('Please select a file first'); return; }
   if (!apiKey) {
-    var ob = document.getElementById('outputBody');
-    ob.innerHTML = '';
-    var warn = document.createElement('div');
-    warn.className = 'quality-warn';
     warn.textContent = 'Image & PDF translation requires a Claude API key. Google does not support image OCR for Creole/Bhojpuri. Please add your API key above.';
-    ob.appendChild(warn);
     setStatus('error', 'API key required for image/PDF translation');
     showToast('Add API key to translate images');
-    return;
-  }
 
   var btn = document.getElementById('ocrBtn');
-  btn.disabled = true;
   document.getElementById('ocrBtnText').textContent = 'Extracting text...';
   setStatus('thinking', 'Reading file with Claude Vision...');
-  setTier(1);
 
-  var cfg = LANG[selLang];
   var imgPrompt = 'This image/document likely contains text in Mauritian Creole or Bhojpuri. Please: 1) Extract ALL the text visible in the image, 2) Detect the language (Kreol Morisyen or Bhojpuri), 3) Translate that text into Telugu script. Reply ONLY as JSON: {"extracted":"<all text found>","detected":"<language>","telugu":"<Telugu translation>","roman":"<romanized Telugu>"}';
 
   if (uploadedFile.type === 'application/pdf') {
     extractPDFAndTranslate(imgPrompt, btn);
-  } else {
     sendImageToClaude(uploadedDataURL, uploadedFile.type, imgPrompt, btn);
-  }
-}
 
 function sendImageToClaude(dataURL, mimeType, prompt, btn) {
   var base64 = dataURL.split(',')[1];
@@ -933,125 +852,33 @@ function sendImageToClaude(dataURL, mimeType, prompt, btn) {
         { type: 'text', text: prompt }
       ]
     }]
-  };
 
-  var xhr = new XMLHttpRequest();
-  xhr.open('POST', 'https://api.anthropic.com/v1/messages', true);
-  xhr.setRequestHeader('Content-Type', 'application/json');
-  xhr.setRequestHeader('x-api-key', apiKey);
-  xhr.setRequestHeader('anthropic-version', '2023-06-01');
-  xhr.setRequestHeader('anthropic-dangerous-direct-browser-access', 'true');
   xhr.timeout = 30000;
-  xhr.onload = function() {
-    btn.disabled = false;
     document.getElementById('ocrBtnText').textContent = 'Extract & Translate';
-    try {
-      var d = JSON.parse(xhr.responseText);
       if (!d.content || !d.content[0]) { throw new Error('No response'); }
-      var txt = d.content[0].text;
-      var BT = String.fromCharCode(96);
-      txt = txt.split(BT+BT+BT+'json').join('').split(BT+BT+BT).join('').trim();
-      var parsed = JSON.parse(txt);
       showOCRResult(parsed);
     } catch(e) {
       setStatus('error', 'Could not read file. Try a clearer image.');
       showToast('Extraction failed');
-    }
-  };
   xhr.onerror = function() {
-    btn.disabled = false;
-    document.getElementById('ocrBtnText').textContent = 'Extract & Translate';
     setStatus('error', 'Network error');
-  };
   xhr.ontimeout = function() {
-    btn.disabled = false;
-    document.getElementById('ocrBtnText').textContent = 'Extract & Translate';
     setStatus('error', 'Timeout - try a smaller file');
-  };
   xhr.send(JSON.stringify(payload));
-}
 
 function extractPDFAndTranslate(prompt, btn) {
-  /* For PDF: use PDF.js to render first page as canvas, then send as image */
-  var script = document.getElementById('pdfjs-script');
-  if (!script) {
-    script = document.createElement('script');
-    script.id = 'pdfjs-script';
-    script.src = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js';
-    script.onload = function() { doRenderPDF(prompt, btn); };
-    script.onerror = function() {
-      /* Fallback: send raw PDF base64 to Claude directly */
-      sendPDFDocToClaude(prompt, btn);
-    };
-    document.head.appendChild(script);
-  } else {
-    doRenderPDF(prompt, btn);
-  }
+  /* Send PDF directly to Claude - no dynamic script loading needed */
+  sendPDFDocToClaude(prompt, btn);
 }
 
-function doRenderPDF(prompt, btn) {
-  try {
-    var pdfjsLib = window['pdfjs-dist/build/pdf'];
-    if (!pdfjsLib) { sendPDFDocToClaude(prompt, btn); return; }
-    pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
-    document.getElementById('ocrBtnText').textContent = 'Rendering PDF...';
-    var base64 = uploadedDataURL.split(',')[1];
-    var raw = atob(base64);
-    var arr = new Uint8Array(raw.length);
-    for (var i = 0; i < raw.length; i++) arr[i] = raw.charCodeAt(i);
-    pdfjsLib.getDocument({ data: arr }).promise.then(function(pdf) {
-      pdf.getPage(1).then(function(page) {
-        var scale = 2.0;
-        var vp = page.getViewport({ scale: scale });
-        var canvas = document.createElement('canvas');
-        canvas.width = vp.width;
-        canvas.height = vp.height;
-        var ctx = canvas.getContext('2d');
-        page.render({ canvasContext: ctx, viewport: vp }).promise.then(function() {
-          var imgData = canvas.toDataURL('image/jpeg', 0.85);
-          sendImageToClaude(imgData, 'image/jpeg', prompt, btn);
-        });
-      });
-    }, function() { sendPDFDocToClaude(prompt, btn); });
-  } catch(e) { sendPDFDocToClaude(prompt, btn); }
-}
 
 function sendPDFDocToClaude(prompt, btn) {
   /* Send PDF directly as document type to Claude */
-  var base64 = uploadedDataURL.split(',')[1];
-  var payload = {
-    model: 'claude-sonnet-4-20250514',
-    max_tokens: 1000,
-    messages: [{
-      role: 'user',
-      content: [
         { type: 'document', source: { type: 'base64', media_type: 'application/pdf', data: base64 } },
-        { type: 'text', text: prompt }
-      ]
-    }]
-  };
-  var xhr = new XMLHttpRequest();
-  xhr.open('POST', 'https://api.anthropic.com/v1/messages', true);
-  xhr.setRequestHeader('Content-Type', 'application/json');
-  xhr.setRequestHeader('x-api-key', apiKey);
-  xhr.setRequestHeader('anthropic-version', '2023-06-01');
-  xhr.setRequestHeader('anthropic-dangerous-direct-browser-access', 'true');
-  xhr.timeout = 30000;
-  xhr.onload = function() {
-    btn.disabled = false;
-    document.getElementById('ocrBtnText').textContent = 'Extract & Translate';
-    try {
-      var d = JSON.parse(xhr.responseText);
-      var txt = d.content[0].text;
-      var BT = String.fromCharCode(96);
-      txt = txt.split(BT+BT+BT+'json').join('').split(BT+BT+BT).join('').trim();
       showOCRResult(JSON.parse(txt));
     } catch(e) { setStatus('error', 'Could not read PDF'); showToast('PDF extraction failed'); }
-  };
   xhr.onerror = function() { btn.disabled = false; document.getElementById('ocrBtnText').textContent = 'Extract & Translate'; setStatus('error', 'Network error'); };
   xhr.ontimeout = function() { btn.disabled = false; document.getElementById('ocrBtnText').textContent = 'Extract & Translate'; setStatus('error', 'Timeout'); };
-  xhr.send(JSON.stringify(payload));
-}
 
 function showOCRResult(parsed) {
   curTelugu = parsed.telugu || '';
@@ -1061,28 +888,14 @@ function showOCRResult(parsed) {
   if (parsed.extracted) {
     ocrBox.style.display = 'block';
     ocrText.textContent = parsed.extracted;
-  }
   /* Show Telugu output */
-  var ob = document.getElementById('outputBody');
-  ob.innerHTML = '';
-  var tag = document.createElement('span');
   tag.className = 'engine-tag engine-tag-claude';
   tag.textContent = 'Claude Vision';
-  ob.appendChild(tag);
-  var tv = document.createElement('div');
-  tv.className = 'telugu-text';
   tv.textContent = curTelugu;
-  ob.appendChild(tv);
   if (parsed.roman) {
-    var tr = document.getElementById('transliteration');
-    tr.style.display = 'block';
     tr.textContent = 'Roman: ' + parsed.roman;
-  }
   setStatus('done', 'File translated via Claude Vision');
-  setTier(1);
   saveHist('[Image/PDF] ' + (parsed.extracted ? parsed.extracted.slice(0,40) : 'file'), curTelugu, selLang, 'claude');
-  setTimeout(function() { speakTelugu(); }, 400);
-}
 
 /* Drag and drop support */
 function initUploadDrag() {
@@ -1095,21 +908,13 @@ function initUploadDrag() {
     panel.className = 'upload-panel';
     var file = e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0];
     if (file) {
-      var dt = new DataTransfer();
-      dt.items.add(file);
-      document.getElementById('fileInput').files = dt.files;
-      handleFileSelect(document.getElementById('fileInput'));
-    }
-  });
-}
+      processUploadedFile(file);
 
 window.onload = function() { init(); initUploadDrag(); };
 if (window.speechSynthesis) {
   window.speechSynthesis.getVoices();
   window.speechSynthesis.onvoiceschanged = function() { window.speechSynthesis.getVoices(); };
-}
-chSynthesis.onvoiceschanged = function() { window.speechSynthesis.getVoices(); };
-}
+chSynthesis.onvoiceschanged = function() {  window.speechSynthesis.getVoices(); };
 </script>
 </body>
 </html>
