@@ -87,15 +87,16 @@ textarea::placeholder{color:var(--muted);}
 .section-title::after{content:'';flex:1;height:1px;background:var(--border);}
 .btn-clear-all{font-size:11px;font-weight:600;letter-spacing:1px;text-transform:uppercase;padding:4px 12px;border-radius:20px;border:1px solid rgba(255,92,107,0.3);background:rgba(255,92,107,0.08);color:var(--red);cursor:pointer;white-space:nowrap;}
 .history-list{display:flex;flex-direction:column;gap:8px;}
-.history-item{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:14px 16px;cursor:pointer;transition:all .2s;display:flex;align-items:flex-start;gap:10px;position:relative;}
+.history-item{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:14px 16px;transition:all .2s;display:flex;align-items:flex-start;gap:8px;position:relative;}
 .history-item:hover{border-color:rgba(255,255,255,0.15);background:var(--surface2);}
-.history-item-content{flex:1;min-width:0;}
+.history-item:hover{border-color:rgba(255,255,255,0.15);background:var(--surface2);}
+.history-item-content{flex:1;min-width:0;cursor:pointer;}
 .history-source{font-size:13px;color:var(--text);margin-bottom:4px;}
 .history-target{font-family:'Tiro Telugu',serif;font-size:15px;color:var(--telugu);}
 .history-meta{font-size:10px;color:var(--muted);margin-top:6px;font-family:'Space Mono',monospace;}
 .history-lang-badge{font-size:10px;font-weight:600;letter-spacing:1px;text-transform:uppercase;padding:3px 8px;border-radius:20px;white-space:nowrap;flex-shrink:0;}
-.history-del{width:28px;height:28px;border-radius:8px;border:1px solid rgba(255,92,107,0.3);background:rgba(255,92,107,0.08);color:var(--red);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:12px;flex-shrink:0;opacity:0;transition:opacity .2s;}
-.history-item:hover .history-del{opacity:1;}
+.history-del{width:32px;height:32px;border-radius:8px;border:1px solid rgba(255,92,107,0.4);background:rgba(255,92,107,0.12);color:var(--red);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;flex-shrink:0;opacity:1;transition:background .2s;}
+.history-del:hover,.history-del:active{background:rgba(255,92,107,0.3);}
 footer{text-align:center;padding:24px 0 8px;font-size:11px;color:var(--muted);letter-spacing:1px;line-height:1.8;}
 .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(60px);background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:10px 20px;font-size:13px;transition:transform .3s;z-index:100;white-space:nowrap;box-shadow:var(--shadow);}
 .toast.show{transform:translateX(-50%) translateY(0);}
@@ -304,13 +305,7 @@ footer{text-align:center;padding:24px 0 8px;font-size:11px;color:var(--muted);le
 
   <footer>
     MauriTel &middot; Mauritius &rarr; Telugu &middot; 3-Tier Engine<br/>
-    Designed &amp; Architected by Krishnamurthy Kandregula &middot; Made by Claude
-  </footer>
-</div>
-
-<div class="toast" id="toast"></div>
-
-<script>
+    Designed &amp; Architected by Krishnamurthy Kandregula &middo
 var selLang = 'auto';
 var isRec = false;
 var isSpeaking = false;
@@ -802,11 +797,7 @@ function renderHistory() {
       delBtn.title = 'Delete';
       delBtn.onclick = function(e) { e.stopPropagation(); deleteHist(idx); };
 
-      /* Long press for mobile */
-      var timer = null;
-      row.addEventListener('touchstart', function() { timer = setTimeout(function() { delBtn.style.opacity = '1'; }, 600); });
-      row.addEventListener('touchend', function() { clearTimeout(timer); });
-      row.addEventListener('touchmove', function() { clearTimeout(timer); });
+
 
       row.appendChild(delBtn);
       list.appendChild(row);
@@ -1116,6 +1107,8 @@ window.onload = function() { init(); initUploadDrag(); };
 if (window.speechSynthesis) {
   window.speechSynthesis.getVoices();
   window.speechSynthesis.onvoiceschanged = function() { window.speechSynthesis.getVoices(); };
+}
+chSynthesis.onvoiceschanged = function() { window.speechSynthesis.getVoices(); };
 }
 </script>
 </body>
