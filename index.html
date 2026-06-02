@@ -450,6 +450,7 @@ function pasteClip() {
   });
 
 function doTranslate() {
+  var el = document.getElementById('sourceText');
   var src = el ? el.value : '';
   src = src ? src.trim() : '';
   if (!src) { showToast('Please type or paste text first'); return; }
