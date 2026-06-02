@@ -149,6 +149,19 @@ footer{text-align:center;padding:24px 0 8px;font-size:11px;color:var(--muted);le
 .btn-save-hf{padding:10px 16px;border-radius:8px;border:none;cursor:pointer;background:var(--telugu);color:#051210;font-weight:600;font-size:13px;white-space:nowrap;}
 .hf-key-hint{font-size:11px;color:var(--muted);margin-top:8px;line-height:1.6;}
 .hf-free-badge{display:inline-block;font-size:10px;font-weight:700;padding:2px 7px;border-radius:10px;background:rgba(93,240,176,0.15);color:var(--telugu);border:1px solid rgba(93,240,176,0.3);margin-left:6px;vertical-align:middle;}
+
+/* Input panel glow - always visible invite */
+.panel-input-active{border:2px solid var(--teal) !important;box-shadow:0 0 0 3px rgba(46,196,182,0.15), var(--shadow) !important;transition:border-color .3s, box-shadow .3s;}
+/* Output panel glow - appears after translation */
+.panel-output-done{border:2px solid var(--gold) !important;box-shadow:0 0 0 3px rgba(232,184,75,0.15), var(--shadow) !important;transition:border-color .4s, box-shadow .4s;}
+/* Subtle pulse on input to invite user */
+@keyframes invitePulse{0%,100%{box-shadow:0 0 0 3px rgba(46,196,182,0.15),var(--shadow);}50%{box-shadow:0 0 0 6px rgba(46,196,182,0.08),var(--shadow);}}
+.panel-input-active{animation:invitePulse 2.5s ease-in-out infinite;}
+/* Stop pulse once user types */
+.panel-input-typing{border:2px solid var(--teal) !important;box-shadow:0 0 0 3px rgba(46,196,182,0.2),var(--shadow) !important;animation:none !important;}
+/* Status line at bottom of output panel */
+.output-engine-status{font-size:11px;color:var(--muted);padding:8px 16px 10px;font-family:'Space Mono',monospace;border-top:1px solid var(--border);display:none;}
+.output-engine-status.visible{display:block;}
 </style>
 </head>
 <body>
@@ -170,7 +183,7 @@ footer{text-align:center;padding:24px 0 8px;font-size:11px;color:var(--muted);le
   <div class="engine-indicator">
     <div class="tier tier-1" id="tier1"><span class="tier-dot"></span>Claude AI</div>
     <span class="tier-sep">&rsaquo;</span>
-    <div class="tier tier-2" id="tier2"><span class="tier-dot"></span>NLLB-200</div>
+    <div class="tier tier-2" id="tier2"><span class="tier-dot"></span>NLLB-200 Free</div>
     <span class="tier-sep">&rsaquo;</span>
     <div class="tier tier-3" id="tier3"><span class="tier-dot"></span>Google</div>
   </div>
@@ -191,17 +204,6 @@ footer{text-align:center;padding:24px 0 8px;font-size:11px;color:var(--muted);le
     <div class="key-hint">Best quality. Understands Creole &amp; Bhojpuri meaning accurately.</div>
   </div>
 
-  <div class="hf-key-section" id="hfKeySection">
-    <label>HUGGINGFACE TOKEN <span class="hf-free-badge">FREE</span> &nbsp;<span style="color:var(--telugu);font-size:10px;font-weight:600;">NLLB-200 by Meta AI</span></label>
-    <div class="hf-key-row">
-      <input type="password" class="hf-key-input" id="hfKeyInput" placeholder="hf_... (free at huggingface.co/settings/tokens)"/>
-      <button class="btn-save-hf" onclick="saveHfKey()">Save</button>
-    </div>
-    <div class="hf-key-hint">
-      NLLB-200 natively supports Mauritian Creole (mfe) &amp; Bhojpuri (bho) &rarr; Telugu. 100% free, no credit card.
-      Get token at <strong>huggingface.co/settings/tokens</strong> &rarr; New Token &rarr; Read access.
-    </div>
-  </div>
 
   <!-- Unified language card -->
   <div class="unified-lang-card">
@@ -222,10 +224,7 @@ footer{text-align:center;padding:24px 0 8px;font-size:11px;color:var(--muted);le
     <span id="detectedLangLabel" style="font-weight:600;font-size:12px;"></span>
   </div>
 
-  <div class="status-bar">
-    <span class="status-dot" id="statusDot"></span>
-    <span id="statusText">Select language and type or speak to translate</span>
-  </div>
+
 
   <!-- INPUT TABS -->
   <div class="tab-row">
@@ -235,7 +234,7 @@ footer{text-align:center;padding:24px 0 8px;font-size:11px;color:var(--muted);le
 
   <!-- TEXT INPUT TAB -->
   <div id="pane-text">
-    <div class="panel">
+    <div class="panel panel-input-active" id="inputPanel">
       <div class="panel-header">
         <span class="panel-label" id="inputLabel" style="color:var(--teal)">KREOL / BHOJPURI</span>
         <div class="panel-actions">
@@ -243,7 +242,7 @@ footer{text-align:center;padding:24px 0 8px;font-size:11px;color:var(--muted);le
           <button class="icon-btn" onclick="pasteClip()">PASTE</button>
         </div>
       </div>
-      <textarea id="sourceText" placeholder="Type or paste in Kreol Morisyen or Bhojpuri" oninput="updateCharCount()" maxlength="2000"></textarea>
+      <textarea id="sourceText" placeholder="Type or paste in Kreol Morisyen or Bhojpuri" oninput="updateCharCount(); onUserType();" maxlength="2000"></textarea>
       <div class="char-count"><span id="charCount">0</span> / 2000</div>
     </div>
     <div class="translate-row">
@@ -280,7 +279,7 @@ footer{text-align:center;padding:24px 0 8px;font-size:11px;color:var(--muted);le
     </div>
   </div>
 
-  <div class="panel" style="margin-top:12px;">
+  <div class="panel" id="outputPanel" style="margin-top:12px;">
     <div class="panel-header">
       <span class="panel-label label-telugu">&#3108;&#3142;&#3122;&#3137;&#3095;&#3137; &#3077;&#3112;&#3137;&#3125;&#3134;&#3110;&#3074;</span>
       <div class="panel-actions">
@@ -292,6 +291,7 @@ footer{text-align:center;padding:24px 0 8px;font-size:11px;color:var(--muted);le
       <div class="output-placeholder" id="outputPlaceholder">&#3077;&#3112;&#3137;&#3125;&#3134;&#3110;&#3074; &#3079;&#3093;&#3149;&#3093;&#3105; &#3093;&#3112;&#3135;&#3114;&#3135;&#3128;&#3149;&#3108;&#3137;&#3074;&#3110;&#3135;...</div>
     </div>
     <div class="transliteration" id="transliteration" style="display:none;"></div>
+    <div class="output-engine-status" id="outputEngineStatus"></div>
   </div>
 
   <div class="history-section" id="historySection" style="display:none;">
@@ -312,7 +312,6 @@ footer{text-align:center;padding:24px 0 8px;font-size:11px;color:var(--muted);le
 
 <script>
 var selLang = 'auto';
-var hfKey = '';
 var isRec = false;
 var isSpeaking = false;
 var recog = null;
@@ -331,7 +330,6 @@ var selLangForSpeech = 'fr-MU';
 function init() {
   try { var s = localStorage.getItem('mth'); if (s) hist = JSON.parse(s); } catch(e) {}
   try { var k = localStorage.getItem('mtk'); if (k) { apiKey = k; document.getElementById('apiKeyInput').value = k; document.getElementById('keySection').style.borderColor = 'rgba(46,196,182,0.3)'; var b = document.getElementById('apiBanner'); if (b) b.style.display = 'none'; } } catch(e) {}
-  try { var hk = localStorage.getItem('mthf'); if (hk) { hfKey = hk; document.getElementById('hfKeyInput').value = hk; document.getElementById('hfKeySection').style.borderColor = 'rgba(93,240,176,0.3)'; updateTierLabels(); } } catch(e) {}
   renderHistory();
   setupSR();
 }
@@ -353,37 +351,6 @@ function saveKey() {
     var banner2 = document.getElementById('apiBanner');
     if (banner2) banner2.style.display = 'flex';
     showToast('Free mode - Google fallback (limited quality)');
-  }
-}
-
-function saveHfKey() {
-  var v = document.getElementById('hfKeyInput').value;
-  v = v ? v.trim() : '';
-  if (v && v.indexOf('hf_') !== 0) { showToast('HF token should start with hf_'); return; }
-  hfKey = v;
-  if (v) {
-    try { localStorage.setItem('mthf', v); } catch(e) {}
-    document.getElementById('hfKeySection').style.borderColor = 'rgba(93,240,176,0.4)';
-    updateTierLabels();
-    showToast('HuggingFace token saved!');
-  } else {
-    try { localStorage.removeItem('mthf'); } catch(e) {}
-    document.getElementById('hfKeySection').style.borderColor = '';
-    updateTierLabels();
-    showToast('HF token removed');
-  }
-}
-
-function updateTierLabels() {
-  var t2 = document.getElementById('tier2');
-  var t3 = document.getElementById('tier3');
-  if (!t2 || !t3) return;
-  if (hfKey) {
-    t2.innerHTML = '<span class="tier-dot"></span>NLLB-200';
-    t3.innerHTML = '<span class="tier-dot"></span>Google';
-  } else {
-    t2.innerHTML = '<span class="tier-dot"></span>Google';
-    t3.innerHTML = '<span class="tier-dot"></span>Auto';
   }
 }
 
@@ -409,9 +376,19 @@ function selectLang(lang) {
 }
 
 function setStatus(type, msg) {
-  var d = document.getElementById('statusDot');
-  d.className = 'status-dot' + (type === 'thinking' ? ' thinking' : type === 'done' ? ' done' : type === 'error' ? ' error' : type === 'rec' ? ' rec' : '');
-  document.getElementById('statusText').textContent = msg;
+  /* Status bar removed - use output engine status line instead */
+  var es = document.getElementById('outputEngineStatus');
+  if (es && msg) {
+    es.textContent = msg;
+    es.className = 'output-engine-status visible';
+  }
+}
+
+function onUserType() {
+  var panel = document.getElementById('inputPanel');
+  if (panel) {
+    panel.className = 'panel panel-input-typing';
+  }
 }
 
 function updateCharCount() {
@@ -482,6 +459,9 @@ function doTranslate() {
   document.getElementById('btnText').textContent = 'Translating...';
   setOutputText('', true);
   document.getElementById('transliteration').style.display = 'none';
+  /* Reset output panel highlight while loading */
+  var op2 = document.getElementById('outputPanel');
+  if (op2) op2.className = 'panel';
   runTranslation(src, function(result, engine) {
     btn.disabled = false;
     document.getElementById('btnText').textContent = 'Translate to Telugu';
@@ -511,29 +491,24 @@ function runTranslation(src, cb) {
       if (r.detected) { showDetectedLang(r.detected); }
       cb(r, 'claude'); return;
     }
-    /* Tier 2: NLLB-200 (if HF key set - good Creole/Bhojpuri support) */
-    if (hfKey) {
-      setStatus('thinking', 'Trying NLLB-200 (HuggingFace)...');
-      setTier(2);
-      callNLLB(src, function(r2) {
-        if (r2) {
-          if (r2.detected) showDetectedLang(r2.detected);
-          cb(r2, 'nllb'); return;
-        }
-        tryGoogleFallback(src, cb);
-      });
-    } else {
+    /* Tier 2: NLLB-200 by Meta AI - free, no key needed, native Creole+Bhojpuri */
+    setStatus('thinking', 'Trying NLLB-200 (Meta AI - free)...');
+    setTier(2);
+    callNLLB(src, function(r2) {
+      if (r2) {
+        if (r2.detected) showDetectedLang(r2.detected);
+        cb(r2, 'nllb'); return;
+      }
       tryGoogleFallback(src, cb);
-    }
+    });
   });
 }
 
 function tryGoogleFallback(src, cb) {
   setStatus('thinking', 'Trying Google Translate...');
-  setTier(hfKey ? 3 : 2);
+  setTier(3);
   callGoogle(src, 'auto', function(r) {
     if (r) { cb(r, 'google'); return; }
-    setTier(hfKey ? 3 : 3);
     callGoogle(src, 'fr', function(r2) { cb(r2, 'auto'); });
   });
 }
@@ -595,7 +570,6 @@ function callClaudeDirect(src, cb) {
 }
 
 function callNLLB(src, cb) {
-  if (!hfKey) { cb(null); return; }
   /* NLLB-200: detect source lang then translate to Telugu */
   /* mfe_Latn = Mauritian Creole, bho_Deva = Bhojpuri, tel_Telu = Telugu */
   /* We try Creole first, then Bhojpuri if result looks wrong */
@@ -620,7 +594,6 @@ function callNLLB(src, cb) {
   var xhr = new XMLHttpRequest();
   xhr.open('POST', 'https://api-inference.huggingface.co/models/facebook/nllb-200-distilled-600M', true);
   xhr.setRequestHeader('Content-Type', 'application/json');
-  xhr.setRequestHeader('Authorization', 'Bearer ' + hfKey);
   xhr.timeout = 30000; /* Model may need to warm up */
   xhr.onload = function() {
     try {
@@ -688,6 +661,12 @@ function setOutputError() {
 }
 
 function showOutput(result, engine) {
+  /* Highlight output panel */
+  var op = document.getElementById('outputPanel');
+  if (op) op.className = 'panel panel-output-done';
+  /* Reset input panel to static glow (stop pulse) */
+  var ip = document.getElementById('inputPanel');
+  if (ip) ip.className = 'panel panel-input-typing';
   var ob = document.getElementById('outputBody');
   ob.innerHTML = '';
   var tag = document.createElement('span');
@@ -749,7 +728,13 @@ function clearAll() {
   isSpeaking = false;
   document.getElementById('speakBtn').className = 'icon-btn';
   setTier(0);
-  setStatus('', 'Cleared');
+  /* Reset panel borders */
+  var ip = document.getElementById('inputPanel');
+  if (ip) ip.className = 'panel panel-input-active';
+  var op = document.getElementById('outputPanel');
+  if (op) op.className = 'panel';
+  var es = document.getElementById('outputEngineStatus');
+  if (es) { es.textContent = ''; es.className = 'output-engine-status'; }
 }
 
 function saveHist(source, telugu, lang, engine) {
